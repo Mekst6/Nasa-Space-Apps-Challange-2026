@@ -74,6 +74,13 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## Shareable links
+
+The URL always reflects what you see: site (or custom point), time and open view, e.g.
+`#site=shackleton&t=2026-11-23T20:00Z&view=terrain` or
+`#site=im2&t=2026-12-01T06:00Z&view=compare&b=malapert-massif`.
+Opening such a link restores that state; the **Share 🔗** button copies it.
+
 ## Sky around the site
 
 The sidebar's horizon chart shows the site's skyline (terrain or smooth), the current Sun and Earth,

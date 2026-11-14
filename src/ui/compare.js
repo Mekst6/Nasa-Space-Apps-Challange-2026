@@ -208,6 +208,7 @@ export function createCompare(container, { getSites, onPickTime }) {
     },
     close() { container.hidden = true; },
     get isOpen() { return !container.hidden; },
+    get pair() { return { a: state.a, b: state.b }; },
     // New simulation time: moves the "now" line, re-anchors the window only when needed.
     setDate(date) {
       state.date = date;

@@ -13,6 +13,7 @@
       <span class="subtitle">NASA Space Apps Challenge 2026</span>
       <button type="button" id="ranking-open" class="topbar-btn">Best sites ★</button>
       <button type="button" id="compare-open" class="topbar-btn">Compare sites ⇄</button>
+      <button type="button" id="share" class="topbar-btn" title="Copy a link to this site, time and view"><span class="share-label">Share </span>🔗</button>
     </header>
     <main id="viewport"></main>
     <aside id="sidebar" class="sidebar" aria-label="Sites and metrics"></aside>
@@ -21,6 +22,7 @@
     <section id="ranking" class="compare ranking" aria-label="Ranking of all sites"></section>
     <section id="terrain" class="terrain" aria-label="3D terrain view"></section>
     <footer id="timeline" class="timeline"></footer>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>

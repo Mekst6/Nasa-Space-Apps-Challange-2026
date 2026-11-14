@@ -8,6 +8,7 @@ import { createCompare } from './ui/compare.js';
 import { createTerrainView } from './ui/terrain.js';
 import { createRanking } from './ui/ranking.js';
 import { SITES, CATEGORIES } from './sites.js';
+import { buildPermalink, parsePermalink } from './permalink.js';
 
 const STATUS_COLORS = { green: 0x3ccf6e, yellow: 0xf2c230, red: 0xff4d4d };
 const NEUTRAL_COLOR = 0xff8a3c;
@@ -140,15 +141,7 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
   },
   onCompare: () => openCompare(state.selected.id),
   onJump: (date) => timeline.setDate(date),
-  onTerrain: () => {
-    const meta = terrainMeta[state.selected.id];
-    if (meta) {
-      compare.close();
-      ranking.close();
-      terrainView.setDate(state.date);
-      terrainView.open(state.selected, meta);
-    }
-  },
+  onTerrain: () => openTerrain(state.selected),
   onView: (which) => {
     if (which === 'near') view.flyTo(10, 15, 2.8);
     if (which === 'far') view.flyTo(-10, 180, 2.8);
@@ -160,6 +153,14 @@ view.onPick((lat, lon) => setCustom({ lat, lon, heightKm: null }));
 
 // ---------- terrain view ----------
 const terrainView = createTerrainView(document.getElementById('terrain'));
+function openTerrain(site) {
+  const meta = terrainMeta[site.id];
+  if (!meta) return;
+  compare.close();
+  ranking.close();
+  terrainView.setDate(state.date);
+  terrainView.open(site, meta);
+}
 
 // ---------- comparison ----------
 const compare = createCompare(document.getElementById('compare'), {
@@ -167,10 +168,13 @@ const compare = createCompare(document.getElementById('compare'), {
   onPickTime: (date) => timeline.setDate(date),
 });
 
+const allSites = () => [...SITES, ...(customEntry ? [customEntry.site] : [])];
+
 // Default partner: another south-pole site for south-pole sites, otherwise the Shackleton rim.
-function openCompare(siteId) {
-  const site = [...SITES, ...(customEntry ? [customEntry.site] : [])].find((s) => s.id === siteId);
-  const partner = SITES.find((s) => s.id !== siteId && s.southPole && (site?.southPole ? s.id !== 'shackleton' || siteId !== 'im2' : true))
+function openCompare(siteId, partnerId = null) {
+  const site = allSites().find((s) => s.id === siteId);
+  const partner = allSites().find((s) => s.id === partnerId && s.id !== siteId)
+    ?? SITES.find((s) => s.id !== siteId && s.southPole && (site?.southPole ? s.id !== 'shackleton' || siteId !== 'im2' : true))
     ?? SITES.find((s) => s.id !== siteId);
   compare.setDate(state.date);
   compare.open(siteId, partner.id);
@@ -269,8 +273,9 @@ view.onFrame((dt) => {
 // Sites with a preprocessed DEM get their horizon profile once it has loaded; until then
 // (or if loading fails) they fall back to the smooth horizon with dip.
 const terrainMeta = {};
+const terrainReady = {}; // site id -> promise of its metadata (for links that open the 3D view)
 for (const site of SITES.filter((s) => s.terrain)) {
-  fetch(`${import.meta.env.BASE_URL}terrain/${site.terrain}.json`)
+  terrainReady[site.id] = fetch(`${import.meta.env.BASE_URL}terrain/${site.terrain}.json`)
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
     .then((meta) => {
       terrainMeta[site.id] = meta;
@@ -280,10 +285,100 @@ for (const site of SITES.filter((s) => s.terrain)) {
       refreshDetails(true);
       refreshCompare(true);
       ranking.refresh();
+      return meta;
     })
     .catch((err) => console.warn(`Terrain for ${site.id} not loaded:`, err));
 }
 
-// Start looking at the near side, slightly zoomed onto Apollo 11.
+// ---------- shareable links ----------
+// The URL hash mirrors the app state (site, time, open view) and restores it on load.
+const SYNC_MS = 500;
+let linkReady = false, lastHash = null, lastSync = 0;
+
+function currentView() {
+  if (compare.isOpen) return 'compare';
+  if (terrainView.isOpen) return 'terrain';
+  if (ranking.isOpen) return 'ranking';
+  return null;
+}
+
+function currentPermalink() {
+  const v = currentView();
+  const { a, b } = compare.pair;
+  return buildPermalink({
+    siteId: v === 'compare' ? a : state.selected.id,
+    time: state.date,
+    view: v,
+    compareB: b,
+    custom: customEntry ? customEntry.site : null,
+  });
+}
+
+function syncLink(force = false) {
+  const now = performance.now();
+  if (!linkReady || (!force && now - lastSync < SYNC_MS)) return;
+  lastSync = now;
+  const hash = currentPermalink();
+  if (hash !== lastHash) {
+    history.replaceState(null, '', `#${hash}`);
+    lastHash = hash;
+  }
+}
+
+async function applyLink(link) {
+  if (link.custom) setCustom(link.custom);
+  if (link.time) timeline.setDate(link.time);
+  const site = allSites().find((s) => s.id === link.siteId) ?? (link.custom ? customEntry.site : SITES[0]);
+  select(site, { fly: false });
+  view.lookAtLatLon(Math.max(-87, Math.min(87, site.lat)), site.lon, site.southPole ? 2.2 : 2.6);
+  terrainView.close();
+  compare.close();
+  ranking.close();
+  if (link.view === 'compare') openCompare(site.id, link.compareB);
+  if (link.view === 'ranking') {
+    ranking.setDate(state.date);
+    ranking.open();
+  }
+  if (link.view === 'terrain' && terrainReady[site.id]) {
+    await terrainReady[site.id];
+    openTerrain(site);
+  }
+}
+
+window.addEventListener('hashchange', () => {
+  if (location.hash.replace(/^#/, '') !== lastHash) applyLink(parsePermalink(location.hash));
+});
+
+view.onFrame(() => syncLink());
+
+// Share button: put the current state into the URL and copy it.
+const toast = document.getElementById('toast');
+let toastTimer = null;
+function showToast(html, ms = 2500) {
+  toast.innerHTML = html;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, ms);
+}
+document.getElementById('share').addEventListener('click', async () => {
+  syncLink(true);
+  try {
+    await navigator.clipboard.writeText(location.href);
+    showToast('Link copied ✓ — it opens this site, time and view.');
+  } catch {
+    // Clipboard access can be blocked; show the link so it can be copied by hand.
+    showToast(`Copy this link:<input class="toast-link" readonly value="${location.href.replace(/"/g, '&quot;')}" />`, 8000);
+    toast.querySelector('.toast-link')?.select();
+  }
+});
+
+// Start: restore a shared link if there is one, otherwise look at the near side and Apollo 11.
+const initialLink = parsePermalink(location.hash);
 view.lookAtLatLon(10, 15, 2.6);
 select(SITES[0], { fly: false });
+applyLink(Object.keys(initialLink).length ? initialLink : { siteId: SITES[0].id })
+  .finally(() => {
+    if (!Object.keys(initialLink).length) view.lookAtLatLon(10, 15, 2.6);
+    linkReady = true;
+    syncLink(true);
+  });
