@@ -6,7 +6,7 @@
 // Usage:
 //   node scripts/build-terrain.mjs <dem.tif> <name> <lat> <lon> [N=512]
 //   node scripts/build-terrain.mjs <dem.tif> <name> auto [N=512]
-// "auto" picks the highest DEM point within 2 km of the tile center (candidate regions have no
+// "auto" picks the highest DEM point within 4 km of the tile center (candidate regions have no
 // official landing point; high ground is where light and Earth visibility are best).
 // Map coordinates: south polar stereographic, sphere R = 1737.4 km, x = rho·sin(lon), y = rho·cos(lon)
 // (checked against the DEM: the Shackleton floor and rim land where they should).
@@ -26,7 +26,7 @@ if (!demPath || !name || (!auto && rest.length < 2)) {
   process.exit(1);
 }
 const N = Number((auto ? rest[1] : rest[2]) ?? 512);
-const AUTO_RADIUS_M = 2000;
+const AUTO_RADIUS_M = 4000;
 
 const image = await (await fromFile(demPath)).getImage();
 const W = image.getWidth(), H = image.getHeight();

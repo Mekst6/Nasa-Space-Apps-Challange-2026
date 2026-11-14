@@ -19,7 +19,8 @@ export function formatLatLon(lat, lon) {
   return `${Math.abs(lat).toFixed(3)}° ${ns}, ${Math.abs(lon).toFixed(3)}° ${ew}`;
 }
 
-export const formatDeg = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}°`;
+// Values that round to 0.00 get a plus sign instead of "−0.00".
+export const formatDeg = (v) => `${v >= -0.005 ? '+' : '−'}${Math.abs(v).toFixed(2)}°`;
 
 export function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
