@@ -74,6 +74,13 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## Best sites (ranking)
+
+"Best sites ★" ranks every site for the 30 days from the selected time: share of time with Sun and
+Earth both above 2° ("Good", same rule as the traffic lights), sunlight, Earth visibility and the
+longest stretch of darkness. Columns are sortable, a south-pole filter is available, and clicking a
+row selects the site.
+
 ## "When does everything fit?"
 
 For the selected site the app searches up to 365 days ahead (hourly, refined to the minute) for the

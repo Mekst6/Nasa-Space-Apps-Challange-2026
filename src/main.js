@@ -6,6 +6,7 @@ import { createTimeline } from './ui/timeline.js';
 import { createSidebar } from './ui/sidebar.js';
 import { createCompare } from './ui/compare.js';
 import { createTerrainView } from './ui/terrain.js';
+import { createRanking } from './ui/ranking.js';
 import { SITES, CATEGORIES } from './sites.js';
 
 const STATUS_COLORS = { green: 0x3ccf6e, yellow: 0xf2c230, red: 0xff4d4d };
@@ -143,6 +144,7 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
     const meta = terrainMeta[state.selected.id];
     if (meta) {
       compare.close();
+      ranking.close();
       terrainView.setDate(state.date);
       terrainView.open(state.selected, meta);
     }
@@ -175,7 +177,23 @@ function openCompare(siteId) {
 }
 document.getElementById('compare-open').addEventListener('click', () => {
   terrainView.close();
+  ranking.close();
   openCompare(state.selected.id);
+});
+
+// ---------- ranking ----------
+const ranking = createRanking(document.getElementById('ranking'), {
+  getSites: () => [...SITES, ...(customEntry ? [customEntry.site] : [])],
+  onSelect: (site) => {
+    ranking.close();
+    select(site);
+  },
+});
+document.getElementById('ranking-open').addEventListener('click', () => {
+  terrainView.close();
+  compare.close();
+  ranking.setDate(state.date);
+  ranking.open();
 });
 
 // ---------- time ----------
@@ -236,6 +254,7 @@ function applyTime(date) {
   refreshDetails();
   if (typeof compare !== 'undefined') refreshCompare();
   if (typeof terrainView !== 'undefined') terrainView.setDate(date);
+  if (typeof ranking !== 'undefined') ranking.setDate(date);
 }
 
 const timeline = createTimeline(document.getElementById('timeline'), { onChange: applyTime });
@@ -259,6 +278,7 @@ for (const site of SITES.filter((s) => s.terrain)) {
       updateMarkerColors();
       refreshDetails(true);
       refreshCompare(true);
+      ranking.refresh();
     })
     .catch((err) => console.warn(`Terrain for ${site.id} not loaded:`, err));
 }

@@ -43,7 +43,7 @@ html, body {
   pointer-events: none;
 }
 .topbar h1 { margin: 0; font-size: 18px; font-weight: 600; }
-.topbar .subtitle { color: var(--muted); font-size: 13px; }
+.topbar .subtitle { color: var(--muted); font-size: 13px; margin-right: auto; }
 
 #viewport { position: fixed; inset: 0; }
 #viewport canvas { display: block; }
@@ -234,7 +234,6 @@ html, body {
 
 .topbar-btn {
   pointer-events: auto;
-  margin-left: auto;
   font: inherit; font-size: 13px;
   color: var(--fg);
   background: var(--panel);
@@ -388,3 +387,30 @@ html, body {
 .sidebar .sb-jump { margin-top: 6px; display: block; }
 .sb-fallback { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
 .sb-next.none { border-color: var(--border); background: rgba(255, 255, 255, 0.03); }
+
+.topbar { align-items: center; }
+.topbar .topbar-btn + .topbar-btn { margin-left: 0; }
+.ranking[hidden] { display: none; }
+.rk-scroll { overflow-x: auto; }
+.rk-table { min-width: 560px; }
+.rk-table th.rk-sort button {
+  all: unset;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+}
+.rk-table th.rk-sort.active button { color: var(--fg); }
+.rk-table th.rk-sort button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rk-row { cursor: pointer; }
+.rk-row:hover, .rk-row:focus-visible { background: rgba(255, 255, 255, 0.05); outline: none; }
+.rk-row td { vertical-align: middle; }
+.rk-sub { font-size: 11px; }
+.rk-bar { display: block; width: 90px; height: 4px; margin-top: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden; }
+.rk-bar > span { display: block; height: 100%; }
+.rk-bar.good > span { background: var(--green); }
+.rk-bar.sun > span { background: var(--sun); }
+.rk-bar.earth > span { background: var(--earth); }
+@media (max-width: 700px) {
+  .topbar h1 { font-size: 15px; }
+  .topbar-btn { font-size: 12px; }
+}

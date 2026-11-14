@@ -189,11 +189,12 @@ export function seriesStats(values) {
   return { hoursAbove: above, hoursTotal: values.length - 1, longestBelow: longest, runOpen };
 }
 
-// Hours in which both the Sun and the Earth are above the horizon (hourly resolution).
-export function bothAboveHours(sun, earth) {
+// Hours in which both the Sun and the Earth are more than `min` degrees above the horizon
+// (hourly resolution).
+export function bothAboveHours(sun, earth, min = 0) {
   let n = 0;
   for (let i = 1; i < sun.length; i++) {
-    if (sun[i] > 0 && earth[i] > 0 && sun[i - 1] > 0 && earth[i - 1] > 0) n += 1;
+    if (sun[i] > min && earth[i] > min && sun[i - 1] > min && earth[i - 1] > min) n += 1;
   }
   return n;
 }
