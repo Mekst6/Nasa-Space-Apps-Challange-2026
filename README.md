@@ -32,8 +32,27 @@ For a site at latitude φ, longitude λ (east positive) and height h, at time t 
 4. Elevation and azimuth (0° = north, 90° = east) against the local horizon of a smooth sphere
    (R = 1737.4 km). An optional site height adds the horizon dip, `acos(R / (R + h))`.
 
-**Limitation:** surrounding terrain (crater rims, mountains) is not modelled. Values are an
-approximation for an unobstructed site, not a terrain analysis.
+**Limitation:** for most sites, surrounding terrain (crater rims, mountains) is not modelled.
+Values are an approximation for an unobstructed site, not a terrain analysis.
+
+### Real terrain at the Shackleton rim
+
+For the Shackleton rim / de Gerlache ridge site the app uses NASA's
+[LOLA 5 m/px south pole elevation model](https://pgda.gsfc.nasa.gov/products/78) (Site04, 16 × 16 km):
+
+- **Horizon profile:** for every 0.5° of azimuth we trace the terrain outward from the site
+  (observer 2 m above ground, exact spherical geometry) and keep the highest elevation angle.
+  Rise/set times, traffic lights and the comparison use this real skyline instead of a flat horizon.
+  Terrain beyond the DEM edge (~6–14 km away) is not included.
+- **3D terrain view:** the DEM, resampled to 31 m, rendered with real-time sun shadows for the
+  selected time (no vertical exaggeration).
+
+Regenerate the data (the 41 MB DEM is not part of the repository):
+
+```bash
+curl -o /tmp/Site04_surf.tif https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site04/Site04_final_adj_5mpp_surf.tif
+node scripts/build-terrain.mjs /tmp/Site04_surf.tif shackleton -89.684 -163.261 512
+```
 
 ## Accuracy check against JPL Horizons
 
@@ -58,6 +77,7 @@ Full table: `scripts/horizons-check-results.json`.
 | Lunar color texture | NASA SVS CGI Moon Kit (https://svs.nasa.gov/4720), `lroc_color_poles_4k.tif`, based on LRO / LROC WAC data, converted to JPEG |
 | Landing site coordinates | NASA NSSDCA, LROC (ASU) and Wikipedia — one source per site in `src/sites.js` |
 | Reference ephemerides | NASA JPL Horizons (validation only) |
+| Terrain, Shackleton rim | NASA GSFC PGDA, High-Resolution LOLA Topography for Lunar South Pole Sites (5 m/px, Site04) |
 
 ## Status
 
@@ -66,6 +86,7 @@ Full table: `scripts/horizons-check-results.json`.
 - [x] M3 — Timeline and real sun lighting
 - [x] M4 — Landing sites and sidebar
 - [x] M5 — Comparison view
+- [x] M6 (extra) — Real terrain horizon and 3D terrain view for the Shackleton rim
 
 ## Use of AI
 

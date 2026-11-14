@@ -9,7 +9,7 @@ const STATUS_TEXT = {
   overall: { green: 'Good', yellow: 'Marginal', red: 'Not possible now' },
 };
 
-export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare }) {
+export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare, onTerrain }) {
   const grouped = categories.map((cat) => ({ cat, items: sites.filter((s) => s.category === cat) }));
   container.innerHTML = `
     <button type="button" class="sb-collapse" aria-expanded="true" aria-controls="sb-body" title="Hide panel">‹</button>
@@ -68,9 +68,10 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
         </details>
         <details>
           <summary>Limitations</summary>
-          <p>We use a smooth lunar sphere plus the horizon dip of the site's height. Crater rims and mountains
-          around a site are not modelled, so treat the values as an approximation for an unobstructed site.
-          Positions agree with NASA JPL Horizons to within 0.004°.</p>
+          <p>Most sites use a smooth lunar sphere plus the horizon dip of the site's height, so crater rims and
+          mountains around them are not modelled. The Shackleton rim site uses a real terrain horizon from a
+          NASA LOLA 5 m elevation model, but only terrain within ~6–14 km; distant mountains are still missing.
+          Sun and Earth positions agree with NASA JPL Horizons to within 0.004°.</p>
         </details>
       </section>
     </div>
@@ -92,6 +93,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
 
   details.addEventListener('click', (e) => {
     if (e.target.closest('.sb-compare')) onCompare();
+    if (e.target.closest('.sb-terrain')) onTerrain();
   });
 
   container.querySelectorAll('[data-toggle]').forEach((input) =>
@@ -128,7 +130,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           <span class="sb-card-title">${title}</span>
           <span class="sb-card-status">${STATUS_TEXT[kind][w.status]}</span>
         </div>
-        <div class="sb-metric">Elevation <strong>${formatDeg(w.elevation)}</strong>
+        <div class="sb-metric">Above horizon <strong>${formatDeg(w.elevation)}</strong>
           <span class="muted">· azimuth ${w.azimuth.toFixed(0)}°</span></div>
         <div class="sb-metric">${eventText(w, date, bodyWord)}</div>
         <div class="sb-metric">Next ${HOURS_WINDOW_DAYS} days: <strong>${w.hoursAbove.toFixed(0)} h</strong>
@@ -150,9 +152,11 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
     },
 
     showSite(site, windows, date) {
-      const heightText = site.heightKm === null || site.heightKm === undefined
-        ? '<span class="muted">height not set (smooth horizon)</span>'
-        : `height ${site.heightKm.toFixed(2)} km${windows.dip > 0 ? ` · horizon dip ${windows.dip.toFixed(2)}°` : ''}`;
+      const heightText = site.horizon
+        ? `height ${site.heightKm.toFixed(2)} km · <strong>terrain horizon</strong>`
+        : site.heightKm === null || site.heightKm === undefined
+          ? '<span class="muted">height not set (smooth horizon)</span>'
+          : `height ${site.heightKm.toFixed(2)} km${windows.dip > 0 ? ` · horizon dip ${windows.dip.toFixed(2)}°` : ''}`;
       const source = site.sourceUrl
         ? `<a href="${escapeHtml(site.sourceUrl)}" target="_blank" rel="noopener">${escapeHtml(site.source)}</a>`
         : escapeHtml(site.source ?? '');
@@ -164,15 +168,21 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           </div>
           <span class="badge ${windows.overall}">${STATUS_TEXT.overall[windows.overall]}</span>
         </div>
+        ${site.horizon ? '<button type="button" class="sb-terrain">Open 3D terrain view ⛰</button>' : ''}
         <button type="button" class="sb-compare">Compare with another site ⇄</button>
         <div class="sb-sub muted">${formatLatLon(site.lat, site.lon)} · ${heightText}</div>
         ${card('power', 'Power · Sun', windows.power, date, 'sun')}
         ${card('comms', 'Comms · Earth', windows.comms, date, 'Earth')}
         <h3>Sky around the site</h3>
         ${horizonSvg({
-          sun: { elevation: windows.power.elevation, azimuth: windows.power.azimuth },
-          earth: { elevation: windows.comms.elevation, azimuth: windows.comms.azimuth },
+            sun: { elevation: windows.power.geometric, azimuth: windows.power.azimuth },
+          earth: { elevation: windows.comms.geometric, azimuth: windows.comms.azimuth },
+          horizon: site.horizon ?? null,
+          dip: windows.dip,
         })}
+        <p class="sb-chart-note muted">${site.horizon
+          ? 'Skyline: real terrain from the LOLA 5 m DEM (within ~6–14 km).'
+          : windows.dip > 0 ? `Skyline: smooth Moon, lowered by the ${windows.dip.toFixed(2)}° horizon dip.` : 'Skyline: smooth Moon.'}</p>
         ${source ? `<p class="sb-source">Source: ${source}</p>` : ''}
       `;
     },

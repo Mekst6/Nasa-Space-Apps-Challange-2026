@@ -98,8 +98,9 @@ function bodyWindows(site, body, startMs) {
 export function siteWindows(site, date) {
   const startMs = date.getTime();
   const sky = siteSky(site, date);
-  const power = { ...bodyWindows(site, 'sun', startMs), azimuth: sky.sun.azimuth };
-  const comms = { ...bodyWindows(site, 'earth', startMs), azimuth: sky.earth.azimuth };
+  const extra = (b) => ({ azimuth: b.azimuth, geometric: b.elevation, horizonElevation: b.horizonElevation });
+  const power = { ...bodyWindows(site, 'sun', startMs), ...extra(sky.sun) };
+  const comms = { ...bodyWindows(site, 'earth', startMs), ...extra(sky.earth) };
   return { power, comms, overall: worse(power.status, comms.status), dip: sky.dip };
 }
 

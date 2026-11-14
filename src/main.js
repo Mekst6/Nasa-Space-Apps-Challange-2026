@@ -5,6 +5,7 @@ import { siteWindows, siteStatus } from './windows.js';
 import { createTimeline } from './ui/timeline.js';
 import { createSidebar } from './ui/sidebar.js';
 import { createCompare } from './ui/compare.js';
+import { createTerrainView } from './ui/terrain.js';
 import { SITES, CATEGORIES } from './sites.js';
 
 const STATUS_COLORS = { green: 0x3ccf6e, yellow: 0xf2c230, red: 0xff4d4d };
@@ -130,6 +131,14 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
     }
   },
   onCompare: () => openCompare(state.selected.id),
+  onTerrain: () => {
+    const meta = terrainMeta[state.selected.id];
+    if (meta) {
+      compare.close();
+      terrainView.setDate(state.date);
+      terrainView.open(state.selected, meta);
+    }
+  },
   onView: (which) => {
     if (which === 'near') view.flyTo(10, 15, 2.8);
     if (which === 'far') view.flyTo(-10, 180, 2.8);
@@ -138,6 +147,9 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
 });
 
 view.onPick((lat, lon) => setCustom({ lat, lon, heightKm: null }));
+
+// ---------- terrain view ----------
+const terrainView = createTerrainView(document.getElementById('terrain'));
 
 // ---------- comparison ----------
 const compare = createCompare(document.getElementById('compare'), {
@@ -153,7 +165,10 @@ function openCompare(siteId) {
   compare.setDate(state.date);
   compare.open(siteId, partner.id);
 }
-document.getElementById('compare-open').addEventListener('click', () => openCompare(state.selected.id));
+document.getElementById('compare-open').addEventListener('click', () => {
+  terrainView.close();
+  openCompare(state.selected.id);
+});
 
 // ---------- time ----------
 function updateMarkerColors(directions = moonFixedDirections(state.date)) {
@@ -190,6 +205,7 @@ function applyTime(date) {
   updateMarkerColors(dirs);
   refreshDetails();
   if (typeof compare !== 'undefined') refreshCompare();
+  if (typeof terrainView !== 'undefined') terrainView.setDate(date);
 }
 
 const timeline = createTimeline(document.getElementById('timeline'), { onChange: applyTime });
@@ -198,6 +214,23 @@ view.onFrame((dt) => {
   timeline.tick(dt);
   updateLabels();
 });
+
+// ---------- terrain profiles ----------
+// Sites with a preprocessed DEM get their horizon profile once it has loaded; until then
+// (or if loading fails) they fall back to the smooth horizon with dip.
+const terrainMeta = {};
+for (const site of SITES.filter((s) => s.terrain)) {
+  fetch(`${import.meta.env.BASE_URL}terrain/${site.terrain}.json`)
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+    .then((meta) => {
+      terrainMeta[site.id] = meta;
+      site.horizon = meta.horizon;
+      updateMarkerColors();
+      refreshDetails(true);
+      refreshCompare(true);
+    })
+    .catch((err) => console.warn(`Terrain for ${site.id} not loaded:`, err));
+}
 
 // Start looking at the near side, slightly zoomed onto Apollo 11.
 view.lookAtLatLon(10, 15, 2.6);

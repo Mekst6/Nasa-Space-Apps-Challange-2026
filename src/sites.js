@@ -2,6 +2,7 @@
 // heightKm: elevation relative to the 1737.4 km reference sphere; only set where a source gives it.
 // Heights drive the horizon dip (PLAN.md section 6), so missing south-pole heights mean the
 // smooth-sphere horizon is used there. Look them up in LROC Quickmap (LOLA) and fill them in.
+// `terrain` names a preprocessed DEM in public/terrain/; its horizon profile then replaces the dip.
 export const CATEGORIES = ['Apollo', 'CLPS', 'International', 'Candidate'];
 
 export const SITES = [
@@ -55,8 +56,9 @@ export const SITES = [
   },
   {
     id: 'shackleton', name: 'Shackleton rim / de Gerlache ridge', mission: 'Artemis candidate region', year: null,
-    lat: -89.684, lon: -163.261, heightKm: null, category: 'Candidate', southPole: true,
-    source: 'LROC, Traversing the Shackleton–de Gerlache Ridge (89.684° S, 196.739° E)',
+    lat: -89.684, lon: -163.261, heightKm: 1.727, category: 'Candidate', southPole: true,
+    source: 'LROC, Traversing the Shackleton–de Gerlache Ridge (89.684° S, 196.739° E); height and terrain: LOLA 5 m DEM Site04 (NASA GSFC PGDA)',
     sourceUrl: 'https://www.lroc.asu.edu/images/1247',
+    terrain: 'shackleton', // public/terrain/shackleton.json (scripts/build-terrain.mjs)
   },
 ];

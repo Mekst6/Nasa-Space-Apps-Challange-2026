@@ -196,7 +196,8 @@ html, body {
 .bar > span { display: block; height: 100%; background: var(--accent); }
 
 .horizon-svg { width: 100%; height: auto; display: block; }
-.horizon-svg .hz-ground { fill: rgba(255, 255, 255, 0.05); }
+.horizon-svg .hz-ground { fill: #262a33; }
+.horizon-svg .hz-skyline { fill: none; stroke: rgba(255, 255, 255, 0.75); stroke-width: 1; }
 .horizon-svg .hz-grazing { fill: rgba(242, 194, 48, 0.18); }
 .horizon-svg .hz-grid { stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; }
 .horizon-svg .hz-zero { stroke: rgba(255, 255, 255, 0.6); }
@@ -234,10 +235,11 @@ html, body {
   cursor: pointer;
 }
 .topbar-btn:hover { background: rgba(40, 46, 60, 0.95); }
-.sb-compare {
+.sb-compare, .sb-terrain {
   width: 100%;
   margin-top: 10px;
 }
+.sidebar .sb-terrain { border-color: rgba(255, 216, 77, 0.5); }
 
 .compare {
   position: fixed;
@@ -294,4 +296,61 @@ html, body {
 @media (max-width: 700px) {
   .compare { left: 8px; right: 8px; top: 52px; bottom: 136px; padding: 10px; }
   .topbar-btn { padding: 4px 8px; }
+}
+
+.sb-chart-note { font-size: 11px; margin: 4px 0 0; }
+
+.terrain {
+  position: fixed;
+  top: 52px; right: 12px; bottom: 120px;
+  left: 370px;
+  z-index: 12;
+  overflow: hidden;
+  background: #020306;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.terrain[hidden] { display: none; }
+.tr-canvas { position: absolute; inset: 0; }
+.tr-canvas canvas { display: block; }
+.tr-head {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 10px 14px;
+  background: linear-gradient(rgba(2, 3, 6, 0.85), rgba(2, 3, 6, 0));
+  pointer-events: none;
+}
+.tr-head h2 { margin: 0; font-size: 16px; }
+.tr-sub { margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+.tr-close {
+  pointer-events: auto;
+  font: inherit; color: var(--fg);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.tr-legend {
+  position: absolute; left: 14px; bottom: 34px;
+  display: flex; flex-wrap: wrap; gap: 14px;
+  color: var(--fg);
+  text-shadow: 0 0 4px #000;
+}
+.tr-key { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.tr-key-site { background: var(--accent); }
+.tr-key-sun { background: var(--sun); }
+.tr-key-earth { background: var(--earth); }
+.tr-note { position: absolute; left: 14px; right: 14px; bottom: 8px; margin: 0; font-size: 11px; text-shadow: 0 0 4px #000; }
+.tr-note a { color: var(--muted); }
+.tr-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-size: 12px; color: var(--fg);
+  text-shadow: 0 0 3px #000, 0 0 6px #000;
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  .terrain { left: 8px; right: 8px; top: 52px; bottom: 136px; }
 }

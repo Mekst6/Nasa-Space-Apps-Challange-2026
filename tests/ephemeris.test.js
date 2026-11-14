@@ -91,3 +91,23 @@ test('apparent elevation adds the dip; azimuth convention is north = 0°, east =
   assert.ok(Math.abs(horizontal([0, 0, 1], 0, 0).azimuth) < 1e-9);
   assert.ok(Math.abs(horizontal([1, 0, 0], 0, 0).elevation - 90) < 1e-9);
 });
+
+test('terrain horizon profile replaces the dip', async () => {
+  const { horizonAt } = await import('../src/ephemeris.js');
+  const profile = { azimuthStepDeg: 90, anglesDeg: [0, 2, 4, 2] };
+  assert.equal(horizonAt(profile, 0), 0);
+  assert.equal(horizonAt(profile, 45), 1);
+  assert.equal(horizonAt(profile, 315), 1); // wraps from 270° back to 0°
+  assert.equal(horizonAt(profile, 360), 0);
+  assert.equal(horizonAt(profile, -90), 2);
+
+  const date = new Date('2026-11-14T15:00:00Z');
+  const site = { lat: -85, lon: 30, heightKm: 2 };
+  const withDip = siteSky(site, date);
+  const flatProfile = { azimuthStepDeg: 1, anglesDeg: new Array(360).fill(-horizonDip(2)) };
+  const withProfile = siteSky({ ...site, horizon: flatProfile }, date);
+  assert.ok(Math.abs(withProfile.sun.apparentElevation - withDip.sun.apparentElevation) < 1e-9);
+
+  const blocked = siteSky({ ...site, horizon: { azimuthStepDeg: 1, anglesDeg: new Array(360).fill(30) } }, date);
+  assert.ok(Math.abs(blocked.sun.apparentElevation - (blocked.sun.elevation - 30)) < 1e-9);
+});

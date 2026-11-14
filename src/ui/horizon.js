@@ -12,7 +12,21 @@ const yOf = (e) => {
 };
 const xOf = (az) => PAD.left + (az / 360) * (W - PAD.left - PAD.right);
 
-export function horizonSvg({ sun, earth }) {
+// Horizon line: terrain profile if available, otherwise the flat horizon lowered by the dip.
+function skyline(horizon, dip, offset) {
+  if (!horizon) return [[0, -dip + offset], [360, -dip + offset]];
+  const { azimuthStepDeg: step, anglesDeg: a } = horizon;
+  return [...a.map((v, i) => [i * step, v + offset]), [360, a[0] + offset]];
+}
+const ridgeLine = (horizon, dip) =>
+  skyline(horizon, dip, 0).map(([az, e], i) => `${i ? 'L' : 'M'}${xOf(az).toFixed(1)},${yOf(e).toFixed(1)}`).join('');
+// Filled area below the skyline (+ offset), down to the bottom of the chart.
+const ridge = (horizon, dip, offset) =>
+  `${skyline(horizon, dip, offset).map(([az, e], i) => `${i ? 'L' : 'M'}${xOf(az).toFixed(1)},${yOf(e).toFixed(1)}`).join('')}`
+  + `L${xOf(360)},${yOf(-MAX)}L${xOf(0)},${yOf(-MAX)}Z`;
+
+// sun / earth: { elevation (geometric), azimuth }. horizon: terrain profile or null; dip: degrees.
+export function horizonSvg({ sun, earth, horizon = null, dip = 0 }) {
   const ticks = [90, 10, 2, 0, -2, -10, -90];
   const tickLines = ticks.map((t) => `
     <line x1="${PAD.left}" x2="${W - PAD.right}" y1="${yOf(t)}" y2="${yOf(t)}" class="hz-grid${t === 0 ? ' hz-zero' : ''}" />
@@ -28,10 +42,10 @@ export function horizonSvg({ sun, earth }) {
   return `
     <svg viewBox="0 0 ${W} ${H}" class="horizon-svg" role="img"
       aria-label="Sun at ${sun.elevation.toFixed(1)}° and Earth at ${earth.elevation.toFixed(1)}° elevation">
-      <rect x="${PAD.left}" y="${yOf(0)}" width="${W - PAD.left - PAD.right}" height="${yOf(-MAX) - yOf(0)}" class="hz-ground" />
-      <rect x="${PAD.left}" y="${yOf(THRESHOLDS.green)}" width="${W - PAD.left - PAD.right}"
-        height="${yOf(0) - yOf(THRESHOLDS.green)}" class="hz-grazing" />
       ${tickLines}
+      <path d="${ridge(horizon, dip, THRESHOLDS.green)}" class="hz-grazing" />
+      <path d="${ridge(horizon, dip, 0)}" class="hz-ground" />
+      <path d="${ridgeLine(horizon, dip)}" class="hz-skyline" />
       ${compass}
       ${body(earth, 'hz-earth', 'Earth')}
       ${body(sun, 'hz-sun', 'Sun')}

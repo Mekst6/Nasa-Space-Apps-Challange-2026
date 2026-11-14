@@ -93,13 +93,26 @@ export function horizontal(d, latDeg, lonDeg) {
   return { elevation, azimuth };
 }
 
+// Elevation of the terrain horizon (degrees) in a given azimuth, linearly interpolated.
+// profile = { azimuthStepDeg, anglesDeg } as produced by scripts/build-terrain.mjs.
+export function horizonAt(profile, azimuth) {
+  const { azimuthStepDeg: step, anglesDeg: angles } = profile;
+  const pos = (((azimuth % 360) + 360) % 360) / step;
+  const i = Math.floor(pos) % angles.length;
+  const f = pos - Math.floor(pos);
+  return angles[i] * (1 - f) + angles[(i + 1) % angles.length] * f;
+}
+
 // Sun and Earth as seen from one site. `elevation` is geometric (smooth sphere),
-// `apparentElevation` is relative to the apparent horizon including the horizon dip.
-export function siteSky({ lat, lon, heightKm = 0 }, date, directions = moonFixedDirections(date)) {
+// `apparentElevation` is relative to the horizon actually seen from the site:
+//   - with a terrain profile (site.horizon): elevation minus the terrain horizon in that azimuth,
+//   - otherwise: elevation plus the horizon dip of the site's height.
+export function siteSky({ lat, lon, heightKm = 0, horizon = null }, date, directions = moonFixedDirections(date)) {
   const dip = horizonDip(heightKm);
   const look = (targetKm) => {
     const h = horizontal(topocentric(targetKm, lat, lon, heightKm), lat, lon);
-    return { ...h, apparentElevation: h.elevation + dip };
+    const horizonElevation = horizon ? horizonAt(horizon, h.azimuth) : -dip;
+    return { ...h, horizonElevation, apparentElevation: h.elevation - horizonElevation };
   };
   return { sun: look(directions.sunKm), earth: look(directions.earthKm), dip };
 }
