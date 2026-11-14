@@ -63,7 +63,7 @@ Full table: `scripts/horizons-check-results.json`.
 
 - [x] M1 — 3D moon with LRO texture, orbit controls, Apollo 11 test marker
 - [x] M2 — Sun / Earth elevation and azimuth, verified against JPL Horizons
-- [ ] M3 — Timeline and real sun lighting
+- [x] M3 — Timeline and real sun lighting
 - [ ] M4 — Landing sites and sidebar
 - [ ] M5 — Comparison view
 

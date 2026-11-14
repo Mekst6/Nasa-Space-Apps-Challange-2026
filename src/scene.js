@@ -1,21 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { fixedToScene, latLonToScene } from './frames.js';
 
 export const MOON_RADIUS = 1; // scene units; 1 unit = 1737.4 km
 
-const DEG = Math.PI / 180;
-
-// Selenographic coordinates -> scene vector, matching the UV layout of
-// THREE.SphereGeometry with an equirectangular texture centered on 0° longitude:
-// +Y = north pole, +X = (0°, 0°), -Z = (0°, 90° E).
+// Selenographic coordinates -> scene vector (see frames.js for the axis convention).
 export function latLonToVector3(latDeg, lonDeg, radius = MOON_RADIUS) {
-  const lat = latDeg * DEG;
-  const lon = lonDeg * DEG;
-  return new THREE.Vector3(
-    radius * Math.cos(lat) * Math.cos(lon),
-    radius * Math.sin(lat),
-    -radius * Math.cos(lat) * Math.sin(lon),
-  );
+  return new THREE.Vector3(...latLonToScene(latDeg, lonDeg, radius));
 }
 
 export function createScene(container) {
@@ -35,12 +26,27 @@ export function createScene(container) {
   controls.enableDamping = true;
   controls.enablePan = false;
   controls.minDistance = 1.15;
-  controls.maxDistance = 8;
+  controls.maxDistance = 9;
   controls.rotateSpeed = 0.5;
   controls.zoomSpeed = 0.8;
 
-  // Placeholder lighting until the real sun direction arrives in M3.
-  scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+  // Sunlight comes from the real sun direction (setSunDirection). The faint ambient term stands in
+  // for earthshine so the night side stays readable.
+  const sunLight = new THREE.DirectionalLight(0xffffff, 3.2);
+  sunLight.position.set(10, 0, 0);
+  scene.add(sunLight, new THREE.AmbientLight(0x8fa6c8, 0.12));
+
+  // Earth marker: right direction, not to scale (the real Earth is ~220 lunar radii away).
+  const earth = new THREE.Mesh(
+    new THREE.SphereGeometry(0.09, 32, 16),
+    new THREE.MeshBasicMaterial({ color: 0x4f8fe0 }),
+  );
+  const EARTH_DISTANCE = 3.4;
+  const earthLine = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(1, 0, 0)]),
+    new THREE.LineDashedMaterial({ color: 0x4f8fe0, dashSize: 0.05, gapSize: 0.05, transparent: true, opacity: 0.6 }),
+  );
+  scene.add(earth, earthLine);
 
   const texture = new THREE.TextureLoader().load(
     `${import.meta.env.BASE_URL}textures/moon_color_4k.jpg`,
@@ -63,6 +69,21 @@ export function createScene(container) {
     controls.update();
   }
 
+  // Directions are unit vectors in the lunar body-fixed frame (ephemeris.js).
+  function setSunDirection(fixedDir) {
+    sunLight.position.set(...fixedToScene(fixedDir)).multiplyScalar(10);
+  }
+
+  function setEarthDirection(fixedDir) {
+    const dir = new THREE.Vector3(...fixedToScene(fixedDir));
+    earth.position.copy(dir).multiplyScalar(EARTH_DISTANCE);
+    const positions = earthLine.geometry.attributes.position;
+    positions.setXYZ(0, dir.x * 1.02, dir.y * 1.02, dir.z * 1.02);
+    positions.setXYZ(1, earth.position.x, earth.position.y, earth.position.z);
+    positions.needsUpdate = true;
+    earthLine.computeLineDistances();
+  }
+
   function onResize() {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
@@ -71,15 +92,18 @@ export function createScene(container) {
   window.addEventListener('resize', onResize);
 
   const frameCallbacks = [];
-  renderer.setAnimationLoop(() => {
+  let lastFrame = null;
+  renderer.setAnimationLoop((now) => {
+    const dtSeconds = lastFrame === null ? 0 : Math.min((now - lastFrame) / 1000, 0.1);
+    lastFrame = now;
     controls.update();
-    for (const cb of frameCallbacks) cb();
+    for (const cb of frameCallbacks) cb(dtSeconds);
     renderer.render(scene, camera);
   });
 
   return {
-    scene, camera, renderer, controls, moon, markers,
-    lookAtLatLon,
+    scene, camera, renderer, controls, moon, markers, earth,
+    lookAtLatLon, setSunDirection, setEarthDirection,
     onFrame: (cb) => frameCallbacks.push(cb),
   };
 }
