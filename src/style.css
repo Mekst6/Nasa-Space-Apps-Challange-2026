@@ -1,4 +1,6 @@
 :root {
+  /* Native controls (select popups, date pickers) render dark on every platform. */
+  color-scheme: dark;
   --bg: #05070d;
   --fg: #e6e9ef;
   --muted: #8a93a6;
@@ -13,6 +15,13 @@
 }
 
 * { box-sizing: border-box; }
+
+/* Option lists are drawn by the browser outside the page; on Android/Windows they take our light
+   text color but keep a white background unless we set it too. */
+select option {
+  color: var(--fg);
+  background-color: #14181f;
+}
 
 html, body {
   margin: 0;
