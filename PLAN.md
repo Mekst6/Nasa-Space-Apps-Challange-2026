@@ -143,6 +143,7 @@ Das ist der Kern des Projekts. Er muss stimmen, bevor die Oberfläche gebaut wir
 3. Richtungen vom Mond aus:
    - zur Sonne: `dSun = normalize(sun − moon)`
    - zur Erde: `dEarth = normalize(−moon)`
+   - Für einen Landeplatz die Richtung **topozentrisch** rechnen (vom Platz aus, nicht vom Mondmittelpunkt): Die Parallaxe der Erde beträgt nahe am Horizont bis ca. 0,26°. (Erkenntnis aus dem Horizons-Abgleich in M2.)
 4. `axis = RotationAxis(Body.Moon, t)` liefert den Nordpol (`north`, Einheitsvektor), `ra`, `dec` und `spin` (Winkel W des Nullmeridians in Grad).
    **Achtung Einheiten:** `ra` ist in **Stunden** (Sternzeit), `dec` und `spin` sind in Grad. Vor der Verwendung `raDeg = ra * 15` rechnen.
 5. Mondfestes Koordinatensystem aufbauen:

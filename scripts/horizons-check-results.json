@@ -1,0 +1,616 @@
+{
+  "summary": {
+    "comparisons": 40,
+    "maxAbsElevationErrorDeg": 0.003801788317399968,
+    "maxAbsAzimuthErrorDeg": 0.0038020546486450257,
+    "generated": "2026-11-14T14:51:36.980Z",
+    "horizons": {
+      "center": "coord@301",
+      "coordType": "GEODETIC",
+      "quantities": "4",
+      "timeType": "UT"
+    }
+  },
+  "rows": [
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Sun",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -13.158066437,
+        "azimuth": 91.44176367
+      },
+      "ours": {
+        "elevation": -13.15671852327773,
+        "azimuth": 91.44069992569135
+      },
+      "dElevation": 0.0013479137222702775,
+      "dAzimuth": -0.0010637443086807252
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Sun",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 10.871728225,
+        "azimuth": 268.358858519
+      },
+      "ours": {
+        "elevation": 10.8679264366826,
+        "azimuth": 268.35882016507003
+      },
+      "dElevation": -0.003801788317399968,
+      "dAzimuth": -0.00003835392999462783
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Sun",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -8.229133765,
+        "azimuth": 91.303002906
+      },
+      "ours": {
+        "elevation": -8.227973975026718,
+        "azimuth": 91.30147243830672
+      },
+      "dElevation": 0.0011597899732826988,
+      "dAzimuth": -0.001530467693328319
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Sun",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 6.088081641,
+        "azimuth": 268.851210043
+      },
+      "ours": {
+        "elevation": 6.0849099413483065,
+        "azimuth": 268.8500116164267
+      },
+      "dElevation": -0.0031716996516930607,
+      "dAzimuth": -0.001198426573296274
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Sun",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": -3.474251155,
+        "azimuth": 90.759079112
+      },
+      "ours": {
+        "elevation": -3.4735323683709733,
+        "azimuth": 90.75781219085718
+      },
+      "dElevation": 0.0007187866290268019,
+      "dAzimuth": -0.001266921142814681
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Earth",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 64.944411219,
+        "azimuth": 279.017761434
+      },
+      "ours": {
+        "elevation": 64.94397990264017,
+        "azimuth": 279.0169197400516
+      },
+      "dElevation": -0.0004313163598368419,
+      "dAzimuth": -0.0008416939483595343
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Earth",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 71.40760496,
+        "azimuth": 262.150519647
+      },
+      "ours": {
+        "elevation": 71.4050786101494,
+        "azimuth": 262.15307669771397
+      },
+      "dElevation": -0.0025263498505978532,
+      "dAzimuth": 0.0025570507139036636
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Earth",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 61.975878813,
+        "azimuth": 270.485240036
+      },
+      "ours": {
+        "elevation": 61.97562420401879,
+        "azimuth": 270.48187195585797
+      },
+      "dElevation": -0.00025460898120854836,
+      "dAzimuth": -0.0033680801420814532
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Earth",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 73.518592078,
+        "azimuth": 277.188959043
+      },
+      "ours": {
+        "elevation": 73.51591654222271,
+        "azimuth": 277.18840966057667
+      },
+      "dElevation": -0.0026755357772856314,
+      "dAzimuth": -0.0005493824232871702
+    },
+    {
+      "point": "Apollo 11 (near side, equator)",
+      "body": "Earth",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": 59.589105398,
+        "azimuth": 262.566250799
+      },
+      "ours": {
+        "elevation": 59.58924433889353,
+        "azimuth": 262.56388860341565
+      },
+      "dElevation": 0.00013894089352817218,
+      "dAzimuth": -0.0023621955842827447
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Sun",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -4.126238884,
+        "azimuth": 124.99597507
+      },
+      "ours": {
+        "elevation": -4.127083559917856,
+        "azimuth": 124.99449587000956
+      },
+      "dElevation": -0.0008446759178557528,
+      "dAzimuth": -0.0014791999903991382
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Sun",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 6.814485466,
+        "azimuth": 302.323016441
+      },
+      "ours": {
+        "elevation": 6.814035827983893,
+        "azimuth": 302.31921438635135
+      },
+      "dElevation": -0.0004496380161072011,
+      "dAzimuth": -0.0038020546486450257
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Sun",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -3.583620507,
+        "azimuth": 120.083956681
+      },
+      "ours": {
+        "elevation": -3.5849578552485344,
+        "azimuth": 120.08259344406562
+      },
+      "dElevation": -0.0013373482485343757,
+      "dAzimuth": -0.001363236934366796
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Sun",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 5.694066825,
+        "azimuth": 297.618935106
+      },
+      "ours": {
+        "elevation": 5.694808648737633,
+        "azimuth": 297.615612760889
+      },
+      "dElevation": 0.0007418237376324299,
+      "dAzimuth": -0.0033223451109734015
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Sun",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": -3.443520281,
+        "azimuth": 115.291437565
+      },
+      "ours": {
+        "elevation": -3.4446680377535546,
+        "azimuth": 115.29054235310028
+      },
+      "dElevation": -0.0011477567535544964,
+      "dAzimuth": -0.0008952118996603531
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Earth",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 5.211282985,
+        "azimuth": 357.328414729
+      },
+      "ours": {
+        "elevation": 5.211565427791275,
+        "azimuth": 357.327940058133
+      },
+      "dElevation": 0.0002824427912742067,
+      "dAzimuth": -0.0004746708669927102
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Earth",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 11.427866692,
+        "azimuth": 3.773371785
+      },
+      "ours": {
+        "elevation": 11.427419474144152,
+        "azimuth": 3.7707142597232797
+      },
+      "dElevation": -0.0004472178558483364,
+      "dAzimuth": -0.002657525276731576
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Earth",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 8.751011636,
+        "azimuth": 354.050002008
+      },
+      "ours": {
+        "elevation": 8.752577175312199,
+        "azimuth": 354.0497182620412
+      },
+      "dElevation": 0.0015655393121996042,
+      "dAzimuth": -0.00028374595876812236
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Earth",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 6.883800338,
+        "azimuth": 5.780223659
+      },
+      "ours": {
+        "elevation": 6.883683293691345,
+        "azimuth": 5.777540139131714
+      },
+      "dElevation": -0.0001170443086557782,
+      "dAzimuth": -0.0026835198682420014
+    },
+    {
+      "point": "IM-1 area (south polar, 80° S)",
+      "body": "Earth",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": 12.683875066,
+        "azimuth": 351.782375258
+      },
+      "ours": {
+        "elevation": 12.685042239038468,
+        "azimuth": 351.78263562552996
+      },
+      "dElevation": 0.0011671730384676948,
+      "dAzimuth": 0.000260367530017902
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Sun",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 27.446726114,
+        "azimuth": 298.933481236
+      },
+      "ours": {
+        "elevation": 27.44507789522598,
+        "azimuth": 298.9330098453768
+      },
+      "dElevation": -0.0016482187740187726,
+      "dAzimuth": -0.0004713906232609588
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Sun",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": -23.665879554,
+        "azimuth": 119.034653806
+      },
+      "ours": {
+        "elevation": -23.66346686647161,
+        "azimuth": 119.03144653826384
+      },
+      "dElevation": 0.0024126875283911886,
+      "dAzimuth": -0.003207267736115682
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Sun",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 24.227637024,
+        "azimuth": 294.782454708
+      },
+      "ours": {
+        "elevation": 24.22573092416288,
+        "azimuth": 294.7825501190696
+      },
+      "dElevation": -0.0019060998371180915,
+      "dAzimuth": 0.00009541106965116342
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Sun",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": -20.989792177,
+        "azimuth": 114.715319853
+      },
+      "ours": {
+        "elevation": -20.986829391744493,
+        "azimuth": 114.71356035079586
+      },
+      "dElevation": 0.0029627852555087486,
+      "dAzimuth": -0.0017595022040950425
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Sun",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": 20.711743728,
+        "azimuth": 291.268236426
+      },
+      "ours": {
+        "elevation": 20.7103198693942,
+        "azimuth": 291.2685555176598
+      },
+      "dElevation": -0.0014238586057970792,
+      "dAzimuth": 0.00031909165977594967
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Earth",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -49.111511685,
+        "azimuth": 181.780536088
+      },
+      "ours": {
+        "elevation": -49.111234356848996,
+        "azimuth": 181.77981272020335
+      },
+      "dElevation": 0.0002773281510073389,
+      "dAzimuth": -0.0007233677965814422
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Earth",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": -42.444858885,
+        "azimuth": 190.200281106
+      },
+      "ours": {
+        "elevation": -42.44564995655711,
+        "azimuth": 190.19688086234794
+      },
+      "dElevation": -0.0007910715571100013,
+      "dAzimuth": -0.003400243652095014
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Earth",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -45.519540546,
+        "azimuth": 177.101086598
+      },
+      "ours": {
+        "elevation": -45.517966179422764,
+        "azimuth": 177.10080952764298
+      },
+      "dElevation": 0.0015743665772376403,
+      "dAzimuth": -0.0002770703570149635
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Earth",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": -46.596572244,
+        "azimuth": 193.955121185
+      },
+      "ours": {
+        "elevation": -46.59717946557694,
+        "azimuth": 193.95135902868068
+      },
+      "dElevation": -0.0006072215769421518,
+      "dAzimuth": -0.003762156319339738
+    },
+    {
+      "point": "Chang'e 4 area (far side)",
+      "body": "Earth",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": -41.448670896,
+        "azimuth": 174.443879066
+      },
+      "ours": {
+        "elevation": -41.447535093049304,
+        "azimuth": 174.44436150116633
+      },
+      "dElevation": 0.0011358029506993716,
+      "dAzimuth": 0.00048243516630464
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Sun",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 1.25833464,
+        "azimuth": 126.627332945
+      },
+      "ours": {
+        "elevation": 1.2573005137738698,
+        "azimuth": 126.62598316955214
+      },
+      "dElevation": -0.0010341262261301942,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Sun",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 1.765924287,
+        "azimuth": 304.355919158
+      },
+      "ours": {
+        "elevation": 1.7659990476358483,
+        "azimuth": 304.3521162966346
+      },
+      "dElevation": 0.00007476063584821446,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Sun",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": 1.1226254,
+        "azimuth": 121.697302347
+      },
+      "ours": {
+        "elevation": 1.1211095470975352,
+        "azimuth": 121.69614366162217
+      },
+      "dElevation": -0.0015158529024648093,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Sun",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 1.316806441,
+        "azimuth": 299.566848762
+      },
+      "ours": {
+        "elevation": 1.3180178764888544,
+        "azimuth": 299.5636838216048
+      },
+      "dElevation": 0.0012114354888543843,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Sun",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": 0.571260886,
+        "azimuth": 116.943073092
+      },
+      "ours": {
+        "elevation": 0.5699940155702908,
+        "azimuth": 116.94235821559475
+      },
+      "dElevation": -0.0012668704297091882,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Earth",
+      "time": "2026-11-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -4.14854532,
+        "azimuth": 358.773422998
+      },
+      "ours": {
+        "elevation": -4.148259386697151,
+        "azimuth": 358.772951934908
+      },
+      "dElevation": 0.00028593330284909513,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Earth",
+      "time": "2026-11-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": 2.071515923,
+        "azimuth": 5.138499532
+      },
+      "ours": {
+        "elevation": 2.0710415948750085,
+        "azimuth": 5.135900055716318
+      },
+      "dElevation": -0.0004743281249917075,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Earth",
+      "time": "2026-12-14T00:00:00.000Z",
+      "horizons": {
+        "elevation": -0.571083712,
+        "azimuth": 355.563213432
+      },
+      "ours": {
+        "elevation": -0.5695147694819213,
+        "azimuth": 355.56296034746174
+      },
+      "dElevation": 0.0015689425180787087,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Earth",
+      "time": "2026-12-29T00:00:00.000Z",
+      "horizons": {
+        "elevation": -2.442193745,
+        "azimuth": 7.178769299
+      },
+      "ours": {
+        "elevation": -2.4423538323144407,
+        "azimuth": 7.176107151750287
+      },
+      "dElevation": -0.00016008731444072666,
+      "dAzimuth": null
+    },
+    {
+      "point": "Near south pole (89.5° S)",
+      "body": "Earth",
+      "time": "2027-01-13T00:00:00.000Z",
+      "horizons": {
+        "elevation": 3.403318933,
+        "azimuth": 353.416429538
+      },
+      "ours": {
+        "elevation": 3.404478844145935,
+        "azimuth": 353.416711685148
+      },
+      "dElevation": 0.0011599111459350553,
+      "dAzimuth": null
+    }
+  ]
+}
