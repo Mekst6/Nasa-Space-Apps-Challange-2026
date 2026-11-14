@@ -5,6 +5,9 @@
 //   curl -o /tmp/Site04_surf.tif https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site04/Site04_final_adj_5mpp_surf.tif
 // Usage:
 //   node scripts/build-terrain.mjs <dem.tif> <name> <lat> <lon> [N=512]
+//   node scripts/build-terrain.mjs <dem.tif> <name> auto [N=512]
+// "auto" picks the highest DEM point within 2 km of the tile center (candidate regions have no
+// official landing point; high ground is where light and Earth visibility are best).
 // Map coordinates: south polar stereographic, sphere R = 1737.4 km, x = rho·sin(lon), y = rho·cos(lon)
 // (checked against the DEM: the Shackleton floor and rim land where they should).
 import { fromFile } from 'geotiff';
@@ -16,12 +19,14 @@ const OBSERVER_HEIGHT_M = 2; // solar panels / antenna roughly 2 m above the gro
 const AZ_STEP = 0.5; // degrees
 const RAY_STEP_M = 10;
 
-const [, , demPath, name, latArg, lonArg, nArg = '512'] = process.argv;
-if (!demPath || !name || latArg === undefined || lonArg === undefined) {
-  console.error('Usage: node scripts/build-terrain.mjs <dem.tif> <name> <lat> <lon> [N]');
+const [, , demPath, name, ...rest] = process.argv;
+const auto = rest[0] === 'auto';
+if (!demPath || !name || (!auto && rest.length < 2)) {
+  console.error('Usage: node scripts/build-terrain.mjs <dem.tif> <name> (<lat> <lon> | auto) [N]');
   process.exit(1);
 }
-const siteLat = Number(latArg), siteLon = Number(lonArg), N = Number(nArg);
+const N = Number((auto ? rest[1] : rest[2]) ?? 512);
+const AUTO_RADIUS_M = 2000;
 
 const image = await (await fromFile(demPath)).getImage();
 const W = image.getWidth(), H = image.getHeight();
@@ -53,10 +58,30 @@ function heightAt(x, y) {
   return (v(r0, c0) * (1 - fc) + v(r0, c1) * fc) * (1 - fr) + (v(r1, c0) * (1 - fc) + v(r1, c1) * fc) * fr;
 }
 
+let siteLat, siteLon, siteChoice;
+if (auto) {
+  const cx = ox + (W * res) / 2, cy = oy - (H * res) / 2;
+  let best = -Infinity, bx = cx, by = cy;
+  for (let r = 0; r < H; r++) {
+    for (let c = 0; c < W; c++) {
+      const x = ox + (c + 0.5) * res, y = oy - (r + 0.5) * res;
+      if (Math.hypot(x - cx, y - cy) > AUTO_RADIUS_M) continue;
+      const z = dem[r * W + c];
+      if (z > best) { best = z; bx = x; by = y; }
+    }
+  }
+  ({ lat: siteLat, lon: siteLon } = fromMap(bx, by));
+  siteChoice = `highest point within ${AUTO_RADIUS_M / 1000} km of the DEM tile center`;
+} else {
+  siteLat = Number(rest[0]);
+  siteLon = Number(rest[1]);
+  siteChoice = 'given coordinates';
+}
+
 // ---- 1. Downsampled height grid (box filter) ----
 const extent = [ox, oy - H * res, ox + W * res, oy]; // [xmin, ymin, xmax, ymax]
 const heights = new Int16Array(N * N);
-const block = W / N;
+const block = W / N; // assumes a square DEM (true for the PGDA tiles)
 for (let j = 0; j < N; j++) {
   for (let i = 0; i < N; i++) {
     let sum = 0, n = 0;
@@ -115,7 +140,10 @@ const meta = {
   projection: 'south polar stereographic, sphere R = 1737.4 km, x = rho·sin(lon), y = rho·cos(lon)',
   heightReference: 'meters relative to the 1737.4 km sphere',
   grid: { n: N, extent, cellM: (extent[2] - extent[0]) / N, file: `${name}-heights.bin`, rowOrder: 'top (max y) first' },
-  site: { lat: siteLat, lon: siteLon, x: sx, y: sy, groundM: +ground.toFixed(1), observerHeightM: OBSERVER_HEIGHT_M },
+  site: {
+    lat: +siteLat.toFixed(5), lon: +siteLon.toFixed(5), x: sx, y: sy,
+    groundM: +ground.toFixed(1), observerHeightM: OBSERVER_HEIGHT_M, choice: siteChoice,
+  },
   horizon: {
     azimuthStepDeg: AZ_STEP,
     anglesDeg: angles,

@@ -44,7 +44,9 @@ function makeSiteEntry(site, color) {
   const anchor = new THREE.Object3D();
   anchor.position.copy(marker.userData.anchor);
   marker.add(anchor);
-  return { site, marker, label: addLabel(site.mission, anchor) };
+  const label = addLabel(site.mission, anchor);
+  label.dense = site.category === 'Candidate';
+  return { site, marker, label };
 }
 
 const entries = SITES.map((site) => makeSiteEntry(site, NEUTRAL_COLOR));
@@ -65,6 +67,11 @@ function hiddenByMoon(point, camera) {
   const t = Math.max(0, Math.min(1, -c.dot(d) / d.lengthSq()));
   return c.clone().addScaledVector(d, t).length() < 0.999;
 }
+// The candidate regions cluster around the pole: label them only when selected or zoomed in.
+function crowded(label, camera) {
+  if (!label.dense || label.el.classList.contains('selected')) return false;
+  return camera.position.length() > 1.9;
+}
 function updateLabels() {
   const { camera, renderer } = view;
   const width = renderer.domElement.clientWidth;
@@ -74,7 +81,7 @@ function updateLabels() {
     const { el, object } = label;
     object.getWorldPosition(world);
     const behindCamera = toPoint.subVectors(world, camera.position).dot(viewDir) <= 0;
-    const markerHidden = label !== earthLabel && !state.showMarkers;
+    const markerHidden = label !== earthLabel && (!state.showMarkers || crowded(label, camera));
     projected.copy(world).project(camera);
     el.classList.toggle('hidden', markerHidden || behindCamera || hiddenByMoon(world, camera));
     el.style.left = `${(projected.x * 0.5 + 0.5) * width}px`;

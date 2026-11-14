@@ -55,10 +55,38 @@ export const SITES = [
     sourceUrl: 'https://www.lroc.asu.edu/images/1087',
   },
   {
-    id: 'shackleton', name: 'Shackleton rim / de Gerlache ridge', mission: 'Artemis candidate region', year: null,
+    id: 'shackleton', name: 'Shackleton–de Gerlache ridge', mission: 'Shackleton rim', year: null,
     lat: -89.684, lon: -163.261, heightKm: 1.727, category: 'Candidate', southPole: true,
     source: 'LROC, Traversing the Shackleton–de Gerlache Ridge (89.684° S, 196.739° E); height and terrain: LOLA 5 m DEM Site04 (NASA GSFC PGDA)',
     sourceUrl: 'https://www.lroc.asu.edu/images/1247',
     terrain: 'shackleton', // public/terrain/shackleton.json (scripts/build-terrain.mjs)
+  },
+  {
+    id: 'peak-near-shackleton', name: 'Artemis III candidate region', mission: 'Peak near Shackleton', year: null,
+    lat: -88.80815, lon: 123.71755, heightKm: 1.649, category: 'Candidate', southPole: true,
+    source: 'Region: NASA Artemis III candidate landing regions (2022). Point and height: highest terrain within 2 km of the center of LOLA 5 m DEM Site07 (NASA GSFC PGDA); not an official landing point',
+    sourceUrl: 'https://pgda.gsfc.nasa.gov/products/78',
+    terrain: 'peak-near-shackleton',
+  },
+  {
+    id: 'connecting-ridge', name: 'Artemis III candidate region', mission: 'Connecting ridge', year: null,
+    lat: -89.43891, lon: -137.14357, heightKm: 1.960, category: 'Candidate', southPole: true,
+    source: 'Region: NASA Artemis III candidate landing regions (2022). Point and height: highest terrain within 2 km of the center of LOLA 5 m DEM Site01 (NASA GSFC PGDA); not an official landing point',
+    sourceUrl: 'https://pgda.gsfc.nasa.gov/products/78',
+    terrain: 'connecting-ridge',
+  },
+  {
+    id: 'malapert-massif', name: 'Artemis III candidate region', mission: 'Malapert massif', year: null,
+    lat: -85.98111, lon: 0.68028, heightKm: 4.886, category: 'Candidate', southPole: true,
+    source: 'Region: NASA Artemis III candidate landing regions (2022). Point and height: highest terrain within 2 km of the center of LOLA 5 m DEM Site23 (NASA GSFC PGDA); not an official landing point',
+    sourceUrl: 'https://pgda.gsfc.nasa.gov/products/78',
+    terrain: 'malapert-massif',
+  },
+  {
+    id: 'leibnitz-beta', name: 'Artemis III candidate region', mission: 'Leibnitz β plateau (Mons Mouton)', year: null,
+    lat: -85.40462, lon: 31.70732, heightKm: 6.464, category: 'Candidate', southPole: true,
+    source: 'Region: NASA Artemis III candidate landing regions (2022). Point and height: highest terrain within 2 km of the center of LOLA 5 m DEM Site20v2 (NASA GSFC PGDA); not an official landing point',
+    sourceUrl: 'https://pgda.gsfc.nasa.gov/products/78',
+    terrain: 'leibnitz-beta',
   },
 ];

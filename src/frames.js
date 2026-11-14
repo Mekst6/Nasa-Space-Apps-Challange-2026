@@ -26,3 +26,31 @@ export function sceneToLatLon([sx, sy, sz]) {
     lon: Math.atan2(-sz, sx) / DEG,
   };
 }
+
+// ---- Local frame at a surface site (used by the terrain view) ----
+// Body-fixed unit vectors pointing east, north and up at (lat, lon).
+export function enuAxes(latDeg, lonDeg) {
+  const sl = Math.sin(latDeg * DEG), cl = Math.cos(latDeg * DEG);
+  const so = Math.sin(lonDeg * DEG), co = Math.cos(lonDeg * DEG);
+  return { east: [-so, co, 0], north: [-sl * co, -sl * so, cl], up: [cl * co, cl * so, sl] };
+}
+
+// Body-fixed vector -> terrain scene axes (X = east, Y = up, Z = -north).
+export function fixedToEnuScene(v, { east, north, up }) {
+  const d = (a) => v[0] * a[0] + v[1] * a[1] + v[2] * a[2];
+  return [d(east), d(up), -d(north)];
+}
+
+// South polar stereographic map coordinates (sphere R = 1737.4 km, x = rho·sin(lon), y = rho·cos(lon))
+// -> latitude/longitude, as used by the LOLA polar DEMs.
+const R_M = 1737400;
+export function polarMapToLatLon(x, y) {
+  return { lat: -90 + (2 * Math.atan(Math.hypot(x, y) / (2 * R_M))) / DEG, lon: Math.atan2(x, y) / DEG };
+}
+
+// Surface point (lat, lon, height above the 1737.4 km sphere in m) -> body-fixed meters.
+export function surfacePointM(latDeg, lonDeg, heightM) {
+  const r = R_M + heightM;
+  const lat = latDeg * DEG, lon = lonDeg * DEG;
+  return [r * Math.cos(lat) * Math.cos(lon), r * Math.cos(lat) * Math.sin(lon), r * Math.sin(lat)];
+}

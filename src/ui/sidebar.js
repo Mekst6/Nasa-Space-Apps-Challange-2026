@@ -16,6 +16,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
     <div id="sb-body" class="sb-body">
       <section class="sb-section">
         <h2>Landing sites</h2>
+        <p class="sb-legend muted"><span class="sb-terrain-badge">3D</span> real terrain horizon + 3D terrain view</p>
         ${grouped.map(({ cat, items }) => `
           <h3>${cat}</h3>
           <ul class="sb-sites">
@@ -24,6 +25,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
                 <span class="dot" data-status-for="${s.id}"></span>
                 <span class="sb-site-mission">${escapeHtml(s.mission)}</span>
                 <span class="sb-site-name">${escapeHtml(s.name)}</span>
+                ${s.terrain ? '<span class="sb-terrain-badge" title="Real terrain horizon and 3D terrain view">3D</span>' : ''}
               </button></li>`).join('')}
           </ul>`).join('')}
       </section>
@@ -168,7 +170,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           </div>
           <span class="badge ${windows.overall}">${STATUS_TEXT.overall[windows.overall]}</span>
         </div>
-        ${site.horizon ? '<button type="button" class="sb-terrain">Open 3D terrain view ⛰</button>' : ''}
+        ${site.horizon ? '<button type="button" class="sb-terrain">Open 3D terrain view</button>' : ''}
         <button type="button" class="sb-compare">Compare with another site ⇄</button>
         <div class="sb-sub muted">${formatLatLon(site.lat, site.lon)} · ${heightText}</div>
         ${card('power', 'Power · Sun', windows.power, date, 'sun')}

@@ -263,7 +263,7 @@ Reihenfolge nach Nutzen:
 4. Benannte Krater und Berge als einblendbare Beschriftung
 5. Horizontprofil aus LOLA-Höhendaten für 1 bis 2 Südpol-Plätze
 
-**Stand Sa 14.11. abends:** Punkt 1 (Erklärtexte) und 5 (Horizontprofil, Shackleton-Rand aus LOLA Site04) sind erledigt, dazu eine 3D-Geländeansicht mit Schatten. Höhe des Shackleton-Platzes laut DEM: 1727 m. Für IM-1 und IM-2 gibt es in Produkt 78 kein 5-m-Modell.
+**Stand Sa 14.11. abends:** Punkt 1 (Erklärtexte) und 5 (Horizontprofil, Shackleton-Rand aus LOLA Site04) sind erledigt, dazu eine 3D-Geländeansicht mit Schatten. Höhe des Shackleton-Platzes laut DEM: 1727 m. Für IM-1 und IM-2 gibt es in Produkt 78 kein 5-m-Modell. Später am Abend ergänzt: vier Artemis-III-Kandidatenregionen mit Gelände (Peak near Shackleton, Connecting ridge, Malapert massif, Leibnitz β plateau); Punkt = höchster Geländepunkt innerhalb 2 km um die Kachelmitte.
 
 **Ab 12:00 keine neuen Funktionen mehr.**
 

@@ -1,15 +1,12 @@
 // 3D terrain view of a preprocessed LOLA DEM (scripts/build-terrain.mjs) with real-time sun shadows.
-// Scene frame: tangent plane at the south pole, 1 unit = 1 km.
-//   X = map x, Z = -map y, Y = height (with the Moon's curvature drop relative to the pole).
-// Map (polar stereographic) axes near the pole: map x ~ body-fixed y, map y ~ body-fixed x, up ~ -z.
+// Scene frame: local tangent plane at the site, 1 unit = 1 km. X = east, Y = up, Z = -north.
+// Every DEM cell is placed exactly on the sphere (map -> lat/lon -> body-fixed -> local frame),
+// so tiles far from the pole are not tilted and the sun direction matches the sidebar numbers.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { moonFixedDirections } from '../ephemeris.js';
+import { enuAxes, fixedToEnuScene, polarMapToLatLon, surfacePointM } from '../frames.js';
 import { escapeHtml } from './format.js';
-
-const R_M = 1737400;
-const toScene = (x, y, hM) => new THREE.Vector3(x / 1000, (hM - (x * x + y * y) / (2 * R_M)) / 1000, -y / 1000);
-const fixedToTerrain = ([dx, dy, dz]) => new THREE.Vector3(dy, -dz, -dx).normalize();
 
 export function createTerrainView(container) {
   container.innerHTML = `
@@ -33,7 +30,12 @@ export function createTerrainView(container) {
   container.hidden = true;
 
   let renderer = null, scene, camera, controls, sun, terrain = null, current = null, date = new Date();
-  let siteMarker, sunArrow, earthArrow, poleLabel;
+  let siteMarker, sunArrow, earthArrow, poleLabel, axes = null, origin = null;
+  // Body-fixed meters -> scene km relative to the site.
+  const toScene = (pM) => {
+    const [x, y, z] = fixedToEnuScene([pM[0] - origin[0], pM[1] - origin[1], pM[2] - origin[2]], axes);
+    return new THREE.Vector3(x / 1000, y / 1000, z / 1000);
+  };
   const meshes = {};
 
   function initRenderer() {
@@ -95,14 +97,14 @@ export function createTerrainView(container) {
     const { n, extent, cellM } = meta.grid;
     const [xmin, , , ymax] = extent;
     const positions = new Float32Array(n * n * 3);
-    let hMin = Infinity, hMax = -Infinity;
+    const box = new THREE.Box3();
+    const p = new THREE.Vector3();
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
-        const x = xmin + (i + 0.5) * cellM, y = ymax - (j + 0.5) * cellM;
-        const p = toScene(x, y, heights[j * n + i]);
+        const { lat, lon } = polarMapToLatLon(xmin + (i + 0.5) * cellM, ymax - (j + 0.5) * cellM);
+        p.copy(toScene(surfacePointM(lat, lon, heights[j * n + i])));
         positions.set([p.x, p.y, p.z], (j * n + i) * 3);
-        hMin = Math.min(hMin, p.y);
-        hMax = Math.max(hMax, p.y);
+        box.expandByPoint(p);
       }
     }
     const index = [];
@@ -119,11 +121,7 @@ export function createTerrainView(container) {
     const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0xa8a8a8, roughness: 1, metalness: 0 }));
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    const bounds = new THREE.Box3(
-      new THREE.Vector3(extent[0] / 1000, hMin, -extent[3] / 1000),
-      new THREE.Vector3(extent[2] / 1000, hMax, -extent[1] / 1000),
-    );
-    meshes[meta.name] = { mesh, bounds };
+    meshes[meta.name] = { mesh, bounds: box };
     return meshes[meta.name];
   }
 
@@ -151,8 +149,8 @@ export function createTerrainView(container) {
   function applyDate() {
     if (!terrain || !current) return;
     const dirs = moonFixedDirections(date);
-    const sunDir = fixedToTerrain(dirs.sun);
-    const earthDir = fixedToTerrain(dirs.earth);
+    const sunDir = new THREE.Vector3(...fixedToEnuScene(dirs.sun, axes)).normalize();
+    const earthDir = new THREE.Vector3(...fixedToEnuScene(dirs.earth, axes)).normalize();
     fitShadowCamera(sunDir);
     const base = siteMarker.position.clone().add(new THREE.Vector3(0, 0.4, 0));
     sunArrow.position.copy(base);
@@ -161,31 +159,39 @@ export function createTerrainView(container) {
     earthArrow.setDirection(earthDir);
     const elev = (d) => (Math.asin(d.y) * 180) / Math.PI;
     $('.tr-sub').textContent = `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC · `
-      + `Sun ${elev(sunDir).toFixed(2)}°, Earth ${elev(earthDir).toFixed(2)}° above the polar plane`;
+      + `Sun ${elev(sunDir).toFixed(2)}°, Earth ${elev(earthDir).toFixed(2)}° above the site's flat horizon`;
   }
 
+  // "South Pole" label, only when the pole lies on the visible tile.
   const labelPos = new THREE.Vector3();
   function updatePoleLabel() {
-    labelPos.copy(toScene(0, 0, 0)).setY(terrain.bounds.max.y * 0.2);
+    const [xmin, ymin, xmax, ymax] = current.meta.grid.extent;
+    const onTile = xmin <= 0 && xmax >= 0 && ymin <= 0 && ymax >= 0;
+    labelPos.copy(toScene(surfacePointM(-90, 0, 0))).setY(terrain.bounds.max.y * 0.2);
     labelPos.project(camera);
     const el = $('.tr-canvas');
     poleLabel.style.left = `${(labelPos.x * 0.5 + 0.5) * el.clientWidth}px`;
     poleLabel.style.top = `${(-labelPos.y * 0.5 + 0.5) * el.clientHeight}px`;
-    poleLabel.hidden = labelPos.z > 1;
+    poleLabel.hidden = !onTile || labelPos.z > 1;
   }
 
   const api = {
     async open(site, meta) {
       if (!renderer) initRenderer();
       container.hidden = false;
-      current = site;
+      current = { site, meta };
+      // Frames are per terrain: the mesh cache is keyed by name and built in this site's frame.
+      axes = enuAxes(meta.site.lat, meta.site.lon);
+      origin = surfacePointM(meta.site.lat, meta.site.lon, meta.site.groundM);
       $('.tr-title').textContent = `${site.mission} · terrain`;
       $('.tr-note').innerHTML = `LOLA 5 m/px DEM (<a href="${escapeHtml(meta.sourceUrl)}" target="_blank" rel="noopener">NASA GSFC PGDA</a>),
         ${((meta.grid.extent[2] - meta.grid.extent[0]) / 1000).toFixed(0)} × ${((meta.grid.extent[3] - meta.grid.extent[1]) / 1000).toFixed(0)} km,
-        shown at ${meta.grid.cellM.toFixed(0)} m. No vertical exaggeration. Shadows come only from terrain inside this area.`;
+        shown at ${meta.grid.cellM.toFixed(0)} m. No vertical exaggeration. Shadows come only from terrain inside this area.
+        ${meta.site.choice !== 'given coordinates' ? `Site marker: ${escapeHtml(meta.site.choice)}.` : ''}`;
       resize();
       try {
         const loaded = await loadMesh(meta);
+        if (current?.meta !== meta) return; // another site was opened meanwhile
         if (terrain) scene.remove(terrain.mesh);
         terrain = loaded;
         scene.add(terrain.mesh);
@@ -193,7 +199,7 @@ export function createTerrainView(container) {
         $('.tr-sub').textContent = `Could not load terrain: ${err.message}`;
         return;
       }
-      siteMarker.position.copy(toScene(meta.site.x, meta.site.y, meta.site.groundM));
+      siteMarker.position.set(0, 0, 0);
       // Look at the site from the north-west, across it toward the pole.
       controls.target.copy(siteMarker.position);
       camera.position.copy(siteMarker.position).add(new THREE.Vector3(-3.5, 2.2, 4.5));
