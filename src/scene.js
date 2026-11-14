@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { fixedToScene, latLonToScene } from './frames.js';
+import { fixedToScene, latLonToScene, sceneToLatLon } from './frames.js';
 
 export const MOON_RADIUS = 1; // scene units; 1 unit = 1737.4 km
+
+const DEG = Math.PI / 180;
 
 // Selenographic coordinates -> scene vector (see frames.js for the axis convention).
 export function latLonToVector3(latDeg, lonDeg, radius = MOON_RADIUS) {
@@ -64,10 +66,53 @@ export function createScene(container) {
   moon.add(markers);
 
   function lookAtLatLon(latDeg, lonDeg, distance = 3) {
+    flight = null;
     camera.position.copy(latLonToVector3(latDeg, lonDeg, distance));
     controls.target.set(0, 0, 0);
     controls.update();
   }
+
+  // Smooth camera move to look down on a point (spherical interpolation around the moon).
+  let flight = null;
+  function flyTo(latDeg, lonDeg, distance = camera.position.length(), durationS = 0.9) {
+    // Stay a little off the exact poles, where the orbit controls have no defined "up".
+    const lat = Math.max(-87, Math.min(87, latDeg));
+    flight = {
+      from: camera.position.clone(),
+      to: latLonToVector3(lat, lonDeg, distance),
+      t: 0,
+      durationS,
+    };
+  }
+  function stepFlight(dt) {
+    if (!flight) return;
+    flight.t = Math.min(1, flight.t + dt / flight.durationS);
+    const k = flight.t * flight.t * (3 - 2 * flight.t);
+    const fromLen = flight.from.length(), toLen = flight.to.length();
+    const dir = flight.from.clone().normalize().lerp(flight.to.clone().normalize(), k);
+    if (dir.lengthSq() < 1e-6) dir.set(0, 1, 0); // exactly opposite: go over the pole
+    camera.position.copy(dir.normalize().multiplyScalar(fromLen + (toLen - fromLen) * k));
+    if (flight.t >= 1) flight = null;
+  }
+  controls.addEventListener('start', () => { flight = null; });
+
+  // Click (not drag) on the moon -> callback(lat, lon).
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let downAt = null;
+  const pickCallbacks = [];
+  renderer.domElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener('pointerup', (e) => {
+    if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
+    const hit = raycaster.intersectObject(moon, false)[0];
+    if (hit) {
+      const { lat, lon } = sceneToLatLon(hit.point.toArray());
+      for (const cb of pickCallbacks) cb(lat, lon);
+    }
+  });
 
   // Directions are unit vectors in the lunar body-fixed frame (ephemeris.js).
   function setSunDirection(fixedDir) {
@@ -84,18 +129,31 @@ export function createScene(container) {
     earthLine.computeLineDistances();
   }
 
+  // Keep at least BASE_FOV horizontally too, so the moon fits on portrait phone screens.
+  const BASE_FOV = 40;
+  function fitFov() {
+    const aspect = camera.aspect;
+    camera.fov = aspect >= 1
+      ? BASE_FOV
+      : (2 * Math.atan(Math.tan((BASE_FOV / 2) * DEG) / aspect)) / DEG;
+  }
+
   function onResize() {
     camera.aspect = container.clientWidth / container.clientHeight;
+    fitFov();
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
   }
   window.addEventListener('resize', onResize);
+  fitFov();
+  camera.updateProjectionMatrix();
 
   const frameCallbacks = [];
   let lastFrame = null;
   renderer.setAnimationLoop((now) => {
     const dtSeconds = lastFrame === null ? 0 : Math.min((now - lastFrame) / 1000, 0.1);
     lastFrame = now;
+    stepFlight(dtSeconds);
     controls.update();
     for (const cb of frameCallbacks) cb(dtSeconds);
     renderer.render(scene, camera);
@@ -103,38 +161,46 @@ export function createScene(container) {
 
   return {
     scene, camera, renderer, controls, moon, markers, earth,
-    lookAtLatLon, setSunDirection, setEarthDirection,
+    lookAtLatLon, flyTo, setSunDirection, setEarthDirection,
+    onPick: (cb) => pickCallbacks.push(cb),
     onFrame: (cb) => frameCallbacks.push(cb),
   };
 }
 
 // Small pin standing on the surface: a dot plus a short stem along the normal.
+// Returns a group with setColor(hex) and setSelected(bool).
 export function createMarker(latDeg, lonDeg, color = 0xff5a3c) {
   const group = new THREE.Group();
   const normal = latLonToVector3(latDeg, lonDeg, 1);
   const stemLength = 0.04;
+  const material = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
 
-  const stem = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.0015, 0.0015, stemLength, 8),
-    new THREE.MeshBasicMaterial({ color }),
-  );
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.0015, 0.0015, stemLength, 8), material);
   stem.position.copy(normal.clone().multiplyScalar(MOON_RADIUS + stemLength / 2));
   stem.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
 
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.008, 16, 8),
-    new THREE.MeshBasicMaterial({ color }),
-  );
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.008, 16, 8), material);
   head.position.copy(normal.clone().multiplyScalar(MOON_RADIUS + stemLength));
 
-  const base = new THREE.Mesh(
-    new THREE.RingGeometry(0.004, 0.007, 24),
-    new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide }),
-  );
+  const base = new THREE.Mesh(new THREE.RingGeometry(0.004, 0.007, 24), material);
   base.position.copy(normal.clone().multiplyScalar(MOON_RADIUS + 0.0005));
   base.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
 
-  group.add(stem, head, base);
+  // Highlight ring around the base, only visible when selected.
+  const halo = new THREE.Mesh(
+    new THREE.RingGeometry(0.012, 0.016, 32),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }),
+  );
+  halo.position.copy(normal.clone().multiplyScalar(MOON_RADIUS + 0.001));
+  halo.quaternion.copy(base.quaternion);
+  halo.visible = false;
+
+  group.add(stem, head, base, halo);
   group.userData.anchor = head.position.clone();
+  group.setColor = (hex) => material.color.set(hex);
+  group.setSelected = (selected) => {
+    halo.visible = selected;
+    head.scale.setScalar(selected ? 1.6 : 1);
+  };
   return group;
 }

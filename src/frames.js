@@ -17,3 +17,12 @@ export function latLonToScene(latDeg, lonDeg, radius = 1) {
     radius * Math.sin(lat),
   ]);
 }
+
+// Scene point (any radius) -> selenographic latitude/longitude in degrees.
+export function sceneToLatLon([sx, sy, sz]) {
+  const r = Math.hypot(sx, sy, sz);
+  return {
+    lat: Math.asin(sy / r) / DEG,
+    lon: Math.atan2(-sz, sx) / DEG,
+  };
+}

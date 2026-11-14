@@ -212,6 +212,8 @@ Die Höhe h für jeden Platz in Quickmap (LOLA-Höhe) nachschlagen und mit Quell
 | Von-Kármán-Krater | Chang'e 4 (2019) | 45,4° S | 177,6° E | International, Rückseite |
 | Shackleton-Kraterrand | Kandidat (Artemis-Region) | 89,7° S | 0° E (prüfen) | Kandidat, Südpol |
 
+**Stand M4:** Die geprüften Werte mit Quelle stehen in `src/sites.js`. Abweichungen zur Tabelle oben: Chang'e 4 liegt laut LROC bei 45,4561° S / 177,5885° O, der Shackleton-Punkt ist der Schnittpunkt des Shackleton–de-Gerlache-Grats mit dem Kraterrand bei 89,684° S / 196,739° O (= −163,261°). Belegte Höhen gibt es bisher nur für SLIM (−0,912 km) und Chang'e 4 (−5,927 km); die Höhen der Südpol-Plätze fehlen noch (Quickmap/LOLA).
+
 Weitere Kandidaten bei Bedarf: Artemis-III-Kandidatenregionen (z. B. Nobile Rim, Haworth, de Gerlache Rim), Chang'e 6.
 
 Zusätzlich: Eingabefelder für eigene Koordinaten und Klick auf den Mond, um einen Punkt zu setzen.
