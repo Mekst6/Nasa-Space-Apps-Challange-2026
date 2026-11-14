@@ -27,6 +27,8 @@ export function createRanking(container, { getSites, onSelect }) {
   const $ = (sel) => container.querySelector(sel);
   container.hidden = true;
   let state = { date: new Date(), windowStart: null, rows: [], sortKey: 'good', poleOnly: false };
+  const REFRESH_MS = 300;
+  let lastRefresh = 0, pending = null;
 
   function compute() {
     state.windowStart = state.date.getTime();
@@ -51,7 +53,7 @@ export function createRanking(container, { getSites, onSelect }) {
   function render() {
     if (container.hidden) return;
     $('.rk-window').textContent = `${LOOKAHEAD_DAYS} days from ${formatUtcShort(new Date(state.windowStart))}`
-      + ' · terrain skyline for 3D sites, smooth horizon elsewhere';
+      + ' · follows the timeline · terrain skyline for 3D sites, smooth horizon elsewhere';
     const [, , , higher] = COLUMNS.find(([k]) => k === state.sortKey);
     const rows = state.rows
       .filter((r) => !state.poleOnly || r.site.southPole)
@@ -106,16 +108,25 @@ export function createRanking(container, { getSites, onSelect }) {
       compute();
       render();
     },
-    close() { container.hidden = true; },
+    close() {
+      container.hidden = true;
+      clearTimeout(pending);
+    },
     get isOpen() { return !container.hidden; },
-    // Same idea as the comparison: the 30-day window stays put until the time leaves it.
+    // The ranking always covers the 30 days from the current time and follows playback live.
+    // A full recompute of all sites takes ~10 ms, so it is throttled; the trailing call makes sure
+    // the final time is shown once playback stops.
     setDate(date) {
       state.date = date;
       if (container.hidden) return;
-      const t = date.getTime();
-      if (t < state.windowStart || t > state.windowStart + (LOOKAHEAD_DAYS * 24 - 1) * 3600e3) {
+      const now = performance.now();
+      clearTimeout(pending);
+      if (now - lastRefresh >= REFRESH_MS) {
+        lastRefresh = now;
         compute();
         render();
+      } else {
+        pending = setTimeout(() => api.setDate(state.date), REFRESH_MS - (now - lastRefresh));
       }
     },
     // Terrain profiles arrive asynchronously; recompute so 3D sites use their skyline.

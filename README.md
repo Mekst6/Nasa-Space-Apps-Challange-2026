@@ -85,7 +85,7 @@ in a small loop (libration).
 
 "Best sites ★" ranks every site for the 30 days from the selected time: share of time with Sun and
 Earth both above 2° ("Good", same rule as the traffic lights), sunlight, Earth visibility and the
-longest stretch of darkness. Columns are sortable, a south-pole filter is available, and clicking a
+longest stretch of darkness. It follows the timeline live while playing. Columns are sortable, a south-pole filter is available, and clicking a
 row selects the site.
 
 ## "When does everything fit?"
