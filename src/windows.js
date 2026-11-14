@@ -110,3 +110,49 @@ export function siteStatus(site, date, directions) {
   const comms = rate(sky.earth.apparentElevation);
   return { power, comms, overall: worse(power, comms) };
 }
+
+// Hourly apparent elevations of Sun and Earth from `startMs` on (for the comparison chart).
+export function elevationSeries(site, startMs, hours = LOOKAHEAD_DAYS * 24) {
+  const first = Math.ceil(startMs / HOUR_MS);
+  const times = [], sun = [], earth = [];
+  for (let h = first; h < first + hours; h++) {
+    const sky = siteSky(site, new Date(h * HOUR_MS), gridDirections(h));
+    times.push(h * HOUR_MS);
+    sun.push(sky.sun.apparentElevation);
+    earth.push(sky.earth.apparentElevation);
+  }
+  return { times, sun, earth };
+}
+
+// Summary of one hourly elevation series: hours above the horizon (interpolated at crossings)
+// and the longest continuous stretch below it. `runOpen` = the longest stretch touches the
+// window edge, so the real one may be longer.
+export function seriesStats(values) {
+  let above = 0;
+  for (let i = 1; i < values.length; i++) {
+    const a = values[i - 1], b = values[i];
+    if (a > 0 && b > 0) above += 1;
+    else if (a > 0 || b > 0) above += a > 0 ? a / (a - b) : b / (b - a);
+  }
+  let longest = 0, run = 0, runOpen = false, runStart = 0;
+  values.forEach((v, i) => {
+    if (v <= 0) {
+      if (run === 0) runStart = i;
+      run += 1;
+      if (run > longest) {
+        longest = run;
+        runOpen = runStart === 0 || i === values.length - 1;
+      }
+    } else run = 0;
+  });
+  return { hoursAbove: above, hoursTotal: values.length - 1, longestBelow: longest, runOpen };
+}
+
+// Hours in which both the Sun and the Earth are above the horizon (hourly resolution).
+export function bothAboveHours(sun, earth) {
+  let n = 0;
+  for (let i = 1; i < sun.length; i++) {
+    if (sun[i] > 0 && earth[i] > 0 && sun[i - 1] > 0 && earth[i - 1] > 0) n += 1;
+  }
+  return n;
+}

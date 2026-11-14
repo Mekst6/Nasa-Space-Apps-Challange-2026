@@ -42,3 +42,20 @@ test('sun hours match the time until sunset; far side never sees the Earth', () 
   assert.equal(far.comms.next, null);
   assert.equal(far.comms.status, 'red');
 });
+
+test('series stats: interpolated hours above and longest run below', async () => {
+  const { seriesStats, bothAboveHours, elevationSeries } = await import('../src/windows.js');
+  // +1, +1, -1, -1, -1, +1: above 1 h fully + 0.5 h + 0.5 h; 3 samples below in a row.
+  const s = seriesStats([1, 1, -1, -1, -1, 1]);
+  assert.ok(Math.abs(s.hoursAbove - 2) < 1e-9, `${s.hoursAbove}`);
+  assert.equal(s.longestBelow, 3);
+  assert.equal(s.runOpen, false);
+  assert.equal(seriesStats([-1, -1, 1]).runOpen, true);
+  assert.equal(bothAboveHours([1, 1, 1, -1], [1, 1, -1, -1]), 1);
+
+  const series = elevationSeries({ lat: 0.674, lon: 23.473, heightKm: 0 }, Date.UTC(2026, 10, 14), 720);
+  assert.equal(series.sun.length, 720);
+  const sunHours = seriesStats(series.sun).hoursAbove;
+  // One synodic month is 708.7 h, so 719 h hold a little more than one full lunar day (~354 h).
+  assert.ok(sunHours > 330 && sunHours < 400, `${sunHours}`);
+});

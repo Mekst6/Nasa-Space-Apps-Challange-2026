@@ -9,7 +9,7 @@ const STATUS_TEXT = {
   overall: { green: 'Good', yellow: 'Marginal', red: 'Not possible now' },
 };
 
-export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView }) {
+export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare }) {
   const grouped = categories.map((cat) => ({ cat, items: sites.filter((s) => s.category === cat) }));
   container.innerHTML = `
     <button type="button" class="sb-collapse" aria-expanded="true" aria-controls="sb-body" title="Hide panel">‹</button>
@@ -90,6 +90,10 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
     onCustom({ lat: Number(form.get('lat')), lon, heightKm: form.get('h') === '' ? null : Number(form.get('h')) });
   });
 
+  details.addEventListener('click', (e) => {
+    if (e.target.closest('.sb-compare')) onCompare();
+  });
+
   container.querySelectorAll('[data-toggle]').forEach((input) =>
     input.addEventListener('change', () => onToggle(input.dataset.toggle, input.checked)));
   container.querySelectorAll('[data-view]').forEach((btn) =>
@@ -160,6 +164,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           </div>
           <span class="badge ${windows.overall}">${STATUS_TEXT.overall[windows.overall]}</span>
         </div>
+        <button type="button" class="sb-compare">Compare with another site ⇄</button>
         <div class="sb-sub muted">${formatLatLon(site.lat, site.lon)} · ${heightText}</div>
         ${card('power', 'Power · Sun', windows.power, date, 'sun')}
         ${card('comms', 'Comms · Earth', windows.comms, date, 'Earth')}

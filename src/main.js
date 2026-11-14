@@ -4,6 +4,7 @@ import { moonFixedDirections } from './ephemeris.js';
 import { siteWindows, siteStatus } from './windows.js';
 import { createTimeline } from './ui/timeline.js';
 import { createSidebar } from './ui/sidebar.js';
+import { createCompare } from './ui/compare.js';
 import { SITES, CATEGORIES } from './sites.js';
 
 const STATUS_COLORS = { green: 0x3ccf6e, yellow: 0xf2c230, red: 0xff4d4d };
@@ -11,6 +12,8 @@ const NEUTRAL_COLOR = 0xff8a3c;
 const CUSTOM_COLOR = 0xffffff;
 // Sidebar metrics take ~1 ms per site; while playing, refresh them a few times per second.
 const DETAILS_REFRESH_MS = 200;
+// The comparison recomputes 2 x 720 hours; refresh it less often while playing.
+const COMPARE_REFRESH_MS = 500;
 
 const view = createScene(document.getElementById('viewport'));
 const labelLayer = document.getElementById('labels');
@@ -105,6 +108,7 @@ function setCustom({ lat, lon, heightKm }) {
   customEntry = makeSiteEntry(site, CUSTOM_COLOR);
   customEntry.marker.visible = state.showMarkers;
   select(site, { fly: false });
+  compare.refreshSites();
 }
 
 const sidebar = createSidebar(document.getElementById('sidebar'), {
@@ -125,6 +129,7 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
       updateMarkerColors();
     }
   },
+  onCompare: () => openCompare(state.selected.id),
   onView: (which) => {
     if (which === 'near') view.flyTo(10, 15, 2.8);
     if (which === 'far') view.flyTo(-10, 180, 2.8);
@@ -133,6 +138,22 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
 });
 
 view.onPick((lat, lon) => setCustom({ lat, lon, heightKm: null }));
+
+// ---------- comparison ----------
+const compare = createCompare(document.getElementById('compare'), {
+  getSites: () => [...SITES, ...(customEntry ? [customEntry.site] : [])],
+  onPickTime: (date) => timeline.setDate(date),
+});
+
+// Default partner: another south-pole site for south-pole sites, otherwise the Shackleton rim.
+function openCompare(siteId) {
+  const site = [...SITES, ...(customEntry ? [customEntry.site] : [])].find((s) => s.id === siteId);
+  const partner = SITES.find((s) => s.id !== siteId && s.southPole && (site?.southPole ? s.id !== 'shackleton' || siteId !== 'im2' : true))
+    ?? SITES.find((s) => s.id !== siteId);
+  compare.setDate(state.date);
+  compare.open(siteId, partner.id);
+}
+document.getElementById('compare-open').addEventListener('click', () => openCompare(state.selected.id));
 
 // ---------- time ----------
 function updateMarkerColors(directions = moonFixedDirections(state.date)) {
@@ -146,6 +167,14 @@ function updateMarkerColors(directions = moonFixedDirections(state.date)) {
 }
 
 let lastDetails = 0;
+let lastCompare = 0;
+function refreshCompare(force = false) {
+  if (!compare.isOpen) return;
+  const now = performance.now();
+  if (!force && now - lastCompare < COMPARE_REFRESH_MS) return;
+  lastCompare = now;
+  compare.setDate(state.date);
+}
 function refreshDetails(force = false) {
   const now = performance.now();
   if (!force && now - lastDetails < DETAILS_REFRESH_MS) return;
@@ -160,6 +189,7 @@ function applyTime(date) {
   view.setEarthDirection(dirs.earth);
   updateMarkerColors(dirs);
   refreshDetails();
+  if (typeof compare !== 'undefined') refreshCompare();
 }
 
 const timeline = createTimeline(document.getElementById('timeline'), { onChange: applyTime });

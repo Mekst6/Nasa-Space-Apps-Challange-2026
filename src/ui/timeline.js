@@ -103,5 +103,11 @@ export function createTimeline(container, { start = new Date(), onChange }) {
       setTime(time + dtSeconds * SPEEDS[Number(speedSel.value)].msPerSecond);
     },
     get date() { return new Date(time); },
+    // Jump to a time from outside (e.g. a click in the comparison chart).
+    setDate(date) {
+      time = date.getTime();
+      recenter();
+      setTime(time);
+    },
   };
 }

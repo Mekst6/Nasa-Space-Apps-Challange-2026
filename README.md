@@ -65,7 +65,7 @@ Full table: `scripts/horizons-check-results.json`.
 - [x] M2 — Sun / Earth elevation and azimuth, verified against JPL Horizons
 - [x] M3 — Timeline and real sun lighting
 - [x] M4 — Landing sites and sidebar
-- [ ] M5 — Comparison view
+- [x] M5 — Comparison view
 
 ## Use of AI
 
