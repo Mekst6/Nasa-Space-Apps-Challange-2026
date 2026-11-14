@@ -186,7 +186,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
     },
 
     // window: result of nextGoodWindow (green), fallback: same with 0° (both merely above the horizon).
-    showSite(site, windows, date, { window: good, fallback, searchDays }) {
+    showSite(site, windows, date, { window: good, fallback, searchDays, track }) {
       const heightText = site.horizon
         ? `height ${site.heightKm.toFixed(2)} km · <strong>terrain horizon</strong>`
         : site.heightKm === null || site.heightKm === undefined
@@ -215,7 +215,9 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           earth: { elevation: windows.comms.geometric, azimuth: windows.comms.azimuth },
           horizon: site.horizon ?? null,
           dip: windows.dip,
+          track,
         })}
+        <p class="sb-chart-note muted">Lines: path of the Sun and Earth over the next 30 days (one dot per day, shown from 10° below the horizon up).</p>
         <p class="sb-chart-note muted">${site.horizon
           ? 'Skyline: real terrain from the LOLA 5 m DEM (within ~6–14 km).'
           : windows.dip > 0 ? `Skyline: smooth Moon, lowered by the ${windows.dip.toFixed(2)}° horizon dip.` : 'Skyline: smooth Moon.'}</p>

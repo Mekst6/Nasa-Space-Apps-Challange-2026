@@ -74,6 +74,13 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## Sky around the site
+
+The sidebar's horizon chart shows the site's skyline (terrain or smooth), the current Sun and Earth,
+and their paths over the next 30 days (one dot per day, labels every 7 days). At the south pole the
+Sun visibly circles the whole horizon once per lunar day and dips behind terrain; the Earth wobbles
+in a small loop (libration).
+
 ## Best sites (ranking)
 
 "Best sites ★" ranks every site for the 30 days from the selected time: share of time with Sun and

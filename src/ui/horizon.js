@@ -25,8 +25,43 @@ const ridge = (horizon, dip, offset) =>
   `${skyline(horizon, dip, offset).map(([az, e], i) => `${i ? 'L' : 'M'}${xOf(az).toFixed(1)},${yOf(e).toFixed(1)}`).join('')}`
   + `L${xOf(360)},${yOf(-MAX)}L${xOf(0)},${yOf(-MAX)}Z`;
 
+// Path over the coming days as polylines. Only the part that matters is drawn: from 10° below the
+// horizon upward. Lines break where the azimuth jumps (wrap at 360°, or the fast swing near the
+// zenith at low latitudes). Dots mark every day; for the Sun every 7th day gets a label.
+const TRAIL_MIN_ELEVATION = -10;
+const MAX_AZIMUTH_STEP = 30; // degrees between consecutive samples before the line breaks
+function trail(points, stepHours, cls, labelWeeks) {
+  if (!points?.length) return '';
+  const perDay = Math.round(24 / stepHours);
+  const visible = (p) => p.elevation >= TRAIL_MIN_ELEVATION;
+  const segments = [];
+  let current = [];
+  points.forEach((p, i) => {
+    const jump = i > 0 && Math.abs(p.azimuth - points[i - 1].azimuth) > MAX_AZIMUTH_STEP;
+    if (!visible(p) || jump) {
+      if (current.length) segments.push(current);
+      current = [];
+    }
+    if (visible(p)) current.push(p);
+  });
+  if (current.length) segments.push(current);
+  const path = segments.filter((seg) => seg.length > 1)
+    .map((seg) => seg.map((p, i) => `${i ? 'L' : 'M'}${xOf(p.azimuth).toFixed(1)},${yOf(p.elevation).toFixed(1)}`).join(''))
+    .join('');
+  const dots = points.map((p, i) => ({ p, day: i / perDay }))
+    .filter(({ p, day }) => day > 0 && Number.isInteger(day) && visible(p))
+    .map(({ p, day }) => {
+      const week = labelWeeks && day % 7 === 0;
+      const x = xOf(p.azimuth).toFixed(1), y = yOf(p.elevation);
+      return `<circle cx="${x}" cy="${y.toFixed(1)}" r="${week ? 2.2 : 1.3}" />`
+        + (week ? `<text x="${x}" y="${Math.max(9, y - 4).toFixed(1)}" text-anchor="middle">${day}d</text>` : '');
+    }).join('');
+  return `<g class="hz-trail ${cls}"><path d="${path}" />${dots}</g>`;
+}
+
 // sun / earth: { elevation (geometric), azimuth }. horizon: terrain profile or null; dip: degrees.
-export function horizonSvg({ sun, earth, horizon = null, dip = 0 }) {
+// track: optional skyTrack() result, drawn as the path over the coming days.
+export function horizonSvg({ sun, earth, horizon = null, dip = 0, track = null }) {
   const ticks = [90, 10, 2, 0, -2, -10, -90];
   const tickLines = ticks.map((t) => `
     <line x1="${PAD.left}" x2="${W - PAD.right}" y1="${yOf(t)}" y2="${yOf(t)}" class="hz-grid${t === 0 ? ' hz-zero' : ''}" />
@@ -46,6 +81,8 @@ export function horizonSvg({ sun, earth, horizon = null, dip = 0 }) {
       <path d="${ridge(horizon, dip, THRESHOLDS.green)}" class="hz-grazing" />
       <path d="${ridge(horizon, dip, 0)}" class="hz-ground" />
       <path d="${ridgeLine(horizon, dip)}" class="hz-skyline" />
+      ${track ? trail(track.earth, track.stepHours, 'hz-trail-earth', false) : ''}
+      ${track ? trail(track.sun, track.stepHours, 'hz-trail-sun', true) : ''}
       ${compass}
       ${body(earth, 'hz-earth', 'Earth')}
       ${body(sun, 'hz-sun', 'Sun')}

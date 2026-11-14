@@ -76,3 +76,18 @@ test('next good window: both bodies cross 2° at its edges; none on the far side
 
   assert.equal(nextGoodWindow(farSide, now, { days: 60 }), null);
 });
+
+test('sky track: 30 days in 2 h steps, matches siteSky at its sample times', async () => {
+  const { skyTrack } = await import('../src/windows.js');
+  const site = { lat: -89.684, lon: -163.261, heightKm: 1.727 };
+  const track = skyTrack(site, new Date('2026-11-14T20:30:00Z'));
+  assert.equal(track.sun.length, 30 * 12 + 1);
+  for (const p of [track.sun[0], track.sun[100], track.earth[250]]) {
+    const body = track.sun.includes(p) ? 'sun' : 'earth';
+    const ref = siteSky(site, new Date(p.t))[body];
+    assert.ok(Math.abs(ref.elevation - p.elevation) < 1e-9 && Math.abs(ref.azimuth - p.azimuth) < 1e-9);
+  }
+  // Near the pole the Sun circles the whole horizon once per lunar day.
+  const azimuths = new Set(track.sun.map((p) => Math.floor(p.azimuth / 45)));
+  assert.equal(azimuths.size, 8);
+});

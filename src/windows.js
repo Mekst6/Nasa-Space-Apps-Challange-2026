@@ -104,6 +104,20 @@ export function siteWindows(site, date) {
   return { power, comms, overall: worse(power.status, comms.status), dip: sky.dip };
 }
 
+// Path of the Sun and the Earth across the site's sky (geometric elevation and azimuth),
+// sampled every `stepHours` on the shared hourly grid, for the horizon chart trails.
+export function skyTrack(site, date, { days = LOOKAHEAD_DAYS, stepHours = 2 } = {}) {
+  const first = Math.ceil(date.getTime() / HOUR_MS);
+  const sun = [], earth = [];
+  for (let h = first; h <= first + days * 24; h += stepHours) {
+    const sky = siteSky(site, new Date(h * HOUR_MS), gridDirections(h));
+    const t = h * HOUR_MS;
+    sun.push({ t, azimuth: sky.sun.azimuth, elevation: sky.sun.elevation });
+    earth.push({ t, azimuth: sky.earth.azimuth, elevation: sky.earth.elevation });
+  }
+  return { sun, earth, stepHours };
+}
+
 // Next time when both the Sun and the Earth are more than `minElevation` above the horizon
 // (default: the green threshold, i.e. "everything fits"). Searches up to `days` ahead.
 // Returns null if there is none, else { start, end, now }: `now` = the window is already open;

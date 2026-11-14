@@ -414,3 +414,10 @@ html, body {
   .topbar h1 { font-size: 15px; }
   .topbar-btn { font-size: 12px; }
 }
+
+.horizon-svg .hz-trail path { fill: none; stroke-width: 1.2; opacity: 0.75; }
+.horizon-svg .hz-trail-sun path { stroke: var(--sun); }
+.horizon-svg .hz-trail-sun circle { fill: var(--sun); }
+.horizon-svg .hz-trail-earth path { stroke: var(--earth); }
+.horizon-svg .hz-trail-earth circle { fill: var(--earth); }
+.horizon-svg .hz-trail text { fill: var(--sun); font-size: 8px; }

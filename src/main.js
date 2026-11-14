@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createScene, createMarker } from './scene.js';
 import { moonFixedDirections } from './ephemeris.js';
-import { siteWindows, siteStatus, nextGoodWindow, GOOD_SEARCH_DAYS } from './windows.js';
+import { siteWindows, siteStatus, nextGoodWindow, skyTrack, GOOD_SEARCH_DAYS } from './windows.js';
 import { createTimeline } from './ui/timeline.js';
 import { createSidebar } from './ui/sidebar.js';
 import { createCompare } from './ui/compare.js';
@@ -242,6 +242,7 @@ function refreshDetails(force = false) {
   const open = (w) => (w && !w.now && state.date >= w.start ? { ...w, now: true } : w);
   sidebar.showSite(state.selected, siteWindows(withHeight(state.selected), state.date), state.date, {
     window: open(windows.window), fallback: open(windows.fallback), searchDays: GOOD_SEARCH_DAYS,
+    track: skyTrack(withHeight(state.selected), state.date),
   });
 }
 
