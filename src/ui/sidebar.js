@@ -9,7 +9,7 @@ const STATUS_TEXT = {
   overall: { green: 'Good', yellow: 'Marginal', red: 'Not possible now' },
 };
 
-export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare, onTerrain }) {
+export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare, onTerrain, onJump }) {
   const grouped = categories.map((cat) => ({ cat, items: sites.filter((s) => s.category === cat) }));
   container.innerHTML = `
     <button type="button" class="sb-collapse" aria-expanded="true" aria-controls="sb-body" title="Hide panel">‹</button>
@@ -96,6 +96,8 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
   details.addEventListener('click', (e) => {
     if (e.target.closest('.sb-compare')) onCompare();
     if (e.target.closest('.sb-terrain')) onTerrain();
+    const jump = e.target.closest('[data-jump]');
+    if (jump) onJump(new Date(Number(jump.dataset.jump)));
   });
 
   container.querySelectorAll('[data-toggle]').forEach((input) =>
@@ -141,6 +143,36 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
       </div>`;
   }
 
+  // "When does everything fit?" Both Sun and Earth above the green threshold.
+  function nextWindowHtml(good, fallback, windows, date, searchDays) {
+    const until = (w) => (w.end
+      ? `for <strong>${formatDuration(w.end - date)}</strong> <span class="muted">(until ${formatUtcShort(w.end)})</span>`
+      : `for more than ${searchDays} days`);
+    const lasts = (w) => (w.end ? `lasts <strong>${formatDuration(w.end - w.start)}</strong>` : `lasts beyond ${searchDays} days`);
+    const jump = (w) => `<button type="button" class="sb-jump" data-jump="${w.start.getTime()}">Jump there ⏵</button>`;
+    let body;
+    if (good?.now) {
+      body = `<span class="dot green"></span> <strong>Power and comms both good now</strong>, ${until(good)}`;
+    } else if (good) {
+      body = `<span class="dot green"></span> Next window with sun <em>and</em> Earth above ${THRESHOLDS.green}°:
+        in <strong>${formatDuration(good.start - date)}</strong>
+        <span class="muted">(${formatUtcShort(good.start)})</span>, ${lasts(good)} ${jump(good)}`;
+    } else {
+      const reason = windows.comms.hoursAbove === 0 && !windows.comms.next
+        ? 'The Earth never rises here, so direct radio contact is impossible: a relay satellite is needed.'
+        : windows.power.hoursAbove === 0 && !windows.power.next
+          ? 'The Sun stays below the horizon here for a long time.'
+          : `Sun and Earth are never both above ${THRESHOLDS.green}° in the next ${searchDays} days.`;
+      body = `<span class="dot red"></span> ${reason}`;
+      if (fallback) {
+        body += `<div class="sb-fallback">Both at least above the horizon (grazing):
+          ${fallback.now ? `now, ${until(fallback)}` : `in <strong>${formatDuration(fallback.start - date)}</strong>
+          <span class="muted">(${formatUtcShort(fallback.start)})</span>, ${lasts(fallback)} ${jump(fallback)}`}</div>`;
+      }
+    }
+    return `<div class="sb-next${good ? '' : ' none'}"><div class="sb-next-title">When does everything fit?</div>${body}</div>`;
+  }
+
   return {
     setStatuses(statuses) {
       container.querySelectorAll('[data-status-for]').forEach((dot) => {
@@ -153,7 +185,8 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
         btn.classList.toggle('selected', btn.dataset.id === id));
     },
 
-    showSite(site, windows, date) {
+    // window: result of nextGoodWindow (green), fallback: same with 0° (both merely above the horizon).
+    showSite(site, windows, date, { window: good, fallback, searchDays }) {
       const heightText = site.horizon
         ? `height ${site.heightKm.toFixed(2)} km · <strong>terrain horizon</strong>`
         : site.heightKm === null || site.heightKm === undefined
@@ -170,6 +203,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           </div>
           <span class="badge ${windows.overall}">${STATUS_TEXT.overall[windows.overall]}</span>
         </div>
+        ${nextWindowHtml(good, fallback, windows, date, searchDays)}
         ${site.horizon ? '<button type="button" class="sb-terrain">Open 3D terrain view</button>' : ''}
         <button type="button" class="sb-compare">Compare with another site ⇄</button>
         <div class="sb-sub muted">${formatLatLon(site.lat, site.lon)} · ${heightText}</div>

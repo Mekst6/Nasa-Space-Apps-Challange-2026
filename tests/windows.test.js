@@ -59,3 +59,20 @@ test('series stats: interpolated hours above and longest run below', async () =>
   // One synodic month is 708.7 h, so 719 h hold a little more than one full lunar day (~354 h).
   assert.ok(sunHours > 330 && sunHours < 400, `${sunHours}`);
 });
+
+test('next good window: both bodies cross 2° at its edges; none on the far side', async () => {
+  const { nextGoodWindow } = await import('../src/windows.js');
+  const site = { lat: 0.674, lon: 23.473, heightKm: 0 };
+  const now = new Date('2026-11-14T20:00:00Z');
+  const w = nextGoodWindow(site, now);
+  assert.ok(w && !w.now && w.end, JSON.stringify(w));
+  const margin = (ms) => {
+    const sky = siteSky(site, new Date(ms));
+    return Math.min(sky.sun.apparentElevation, sky.earth.apparentElevation) - 2;
+  };
+  assert.ok(margin(w.start - 60e3) <= 0 && margin(w.start + 60e3) > 0, 'opens at start');
+  assert.ok(margin(w.end - 60e3) > 0 && margin(w.end + 60e3) <= 0, 'closes at end');
+  assert.ok(margin(w.start + (w.end - w.start) / 2) > 0, 'open in the middle');
+
+  assert.equal(nextGoodWindow(farSide, now, { days: 60 }), null);
+});

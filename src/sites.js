@@ -8,14 +8,38 @@ export const CATEGORIES = ['Apollo', 'CLPS', 'International', 'Candidate'];
 export const SITES = [
   {
     id: 'apollo11', name: 'Mare Tranquillitatis', mission: 'Apollo 11', year: 1969,
-    lat: 0.67408, lon: 23.47297, heightKm: null, category: 'Apollo', southPole: false,
-    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (IAU Mean Earth/Polar Axis)',
+    lat: 0.67416, lon: 23.47314, heightKm: null, category: 'Apollo', southPole: false,
+    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (LM; Mean Earth/Polar Axis, from LRO images)',
+    sourceUrl: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html',
+  },
+  {
+    id: 'apollo12', name: 'Oceanus Procellarum', mission: 'Apollo 12', year: 1969,
+    lat: -3.0128, lon: -23.4219, heightKm: null, category: 'Apollo', southPole: false,
+    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (LM; Mean Earth/Polar Axis, from LRO images)',
+    sourceUrl: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html',
+  },
+  {
+    id: 'apollo14', name: 'Fra Mauro', mission: 'Apollo 14', year: 1971,
+    lat: -3.64589, lon: -17.47194, heightKm: null, category: 'Apollo', southPole: false,
+    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (LM; Mean Earth/Polar Axis, from LRO images)',
+    sourceUrl: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html',
+  },
+  {
+    id: 'apollo15', name: 'Hadley-Apennine', mission: 'Apollo 15', year: 1971,
+    lat: 26.13239, lon: 3.6333, heightKm: null, category: 'Apollo', southPole: false,
+    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (LM; Mean Earth/Polar Axis, from LRO images)',
+    sourceUrl: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html',
+  },
+  {
+    id: 'apollo16', name: 'Descartes Highlands', mission: 'Apollo 16', year: 1972,
+    lat: -8.9734, lon: 15.5011, heightKm: null, category: 'Apollo', southPole: false,
+    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (LM; Mean Earth/Polar Axis, from LRO images)',
     sourceUrl: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html',
   },
   {
     id: 'apollo17', name: 'Taurus-Littrow', mission: 'Apollo 17', year: 1972,
-    lat: 20.1908, lon: 30.77168, heightKm: null, category: 'Apollo', southPole: false,
-    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (Lunar Module)',
+    lat: 20.1911, lon: 30.7723, heightKm: null, category: 'Apollo', southPole: false,
+    source: 'NASA NSSDCA, Apollo Landing Site Coordinates (LM; Mean Earth/Polar Axis, from LRO images)',
     sourceUrl: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html',
   },
   {
@@ -53,6 +77,24 @@ export const SITES = [
     lat: -45.4561, lon: 177.5885, heightKm: -5.927, category: 'International', southPole: false,
     source: "LROC, Chang'e 4 Lander Coordinates (stereo DTM)",
     sourceUrl: 'https://www.lroc.asu.edu/images/1087',
+  },
+  {
+    id: 'change3', name: 'Mare Imbrium', mission: "Chang'e 3", year: 2013,
+    lat: 44.1214, lon: -19.5116, heightKm: -2.64, category: 'International', southPole: false,
+    source: "LROC, Chang'e 3 Lander and Rover From Above (44.1214° N, 340.4884° E, -2640 m)",
+    sourceUrl: 'https://lroc.im-ldi.com/images/637',
+  },
+  {
+    id: 'change5', name: 'Oceanus Procellarum (Mons Rümker)', mission: "Chang'e 5", year: 2020,
+    lat: 43.0576, lon: -51.9161, heightKm: -2.57, category: 'International', southPole: false,
+    source: "LROC, First Look: Chang'e 5 (43.0576° N, 308.0839° E, -2570 m)",
+    sourceUrl: 'https://www.lroc.im-ldi.com/images/1172',
+  },
+  {
+    id: 'change6', name: 'Apollo basin (far side)', mission: "Chang'e 6", year: 2024,
+    lat: -41.6385, lon: -153.9852, heightKm: -5.256, category: 'International', southPole: false,
+    source: "LROC, First Look: Chang'e 6 (41.6385° S, 206.0148° E, -5256 m)",
+    sourceUrl: 'https://lroc.im-ldi.com/images/1374',
   },
   {
     id: 'shackleton', name: 'Shackleton–de Gerlache ridge', mission: 'Shackleton rim', year: null,

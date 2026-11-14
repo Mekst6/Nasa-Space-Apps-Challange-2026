@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createScene, createMarker } from './scene.js';
 import { moonFixedDirections } from './ephemeris.js';
-import { siteWindows, siteStatus } from './windows.js';
+import { siteWindows, siteStatus, nextGoodWindow, GOOD_SEARCH_DAYS } from './windows.js';
 import { createTimeline } from './ui/timeline.js';
 import { createSidebar } from './ui/sidebar.js';
 import { createCompare } from './ui/compare.js';
@@ -138,6 +138,7 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
     }
   },
   onCompare: () => openCompare(state.selected.id),
+  onJump: (date) => timeline.setDate(date),
   onTerrain: () => {
     const meta = terrainMeta[state.selected.id];
     if (meta) {
@@ -197,11 +198,33 @@ function refreshCompare(force = false) {
   lastCompare = now;
   compare.setDate(state.date);
 }
+// The window search can scan a whole year, so cache it until the time leaves the range in
+// which the answer stays the same (before the window opens / until it closes).
+let windowCache = null;
+function nextWindows(site, date) {
+  const t = date.getTime();
+  const c = windowCache;
+  if (c && c.site === site && t >= c.from && t < c.validUntil) return c;
+  const site0 = withHeight(site);
+  const good = nextGoodWindow(site0, date);
+  const fallback = good ? null : nextGoodWindow(site0, date, { minElevation: 0 });
+  const w = good ?? fallback;
+  const searchEnd = t + GOOD_SEARCH_DAYS * 864e5;
+  const validUntil = !w ? searchEnd : w.now ? (w.end?.getTime() ?? searchEnd) : w.start.getTime();
+  windowCache = { site, from: t, validUntil, window: good, fallback };
+  return windowCache;
+}
+
 function refreshDetails(force = false) {
   const now = performance.now();
   if (!force && now - lastDetails < DETAILS_REFRESH_MS) return;
   lastDetails = now;
-  sidebar.showSite(state.selected, siteWindows(withHeight(state.selected), state.date), state.date);
+  const windows = nextWindows(state.selected, state.date);
+  // A window that was "upcoming" when cached is open once the time is past its start.
+  const open = (w) => (w && !w.now && state.date >= w.start ? { ...w, now: true } : w);
+  sidebar.showSite(state.selected, siteWindows(withHeight(state.selected), state.date), state.date, {
+    window: open(windows.window), fallback: open(windows.fallback), searchDays: GOOD_SEARCH_DAYS,
+  });
 }
 
 function applyTime(date) {
@@ -232,6 +255,7 @@ for (const site of SITES.filter((s) => s.terrain)) {
     .then((meta) => {
       terrainMeta[site.id] = meta;
       site.horizon = meta.horizon;
+      windowCache = null;
       updateMarkerColors();
       refreshDetails(true);
       refreshCompare(true);

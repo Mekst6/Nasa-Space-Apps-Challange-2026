@@ -68,6 +68,14 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## "When does everything fit?"
+
+For the selected site the app searches up to 365 days ahead (hourly, refined to the minute) for the
+next window in which **both** the Sun and the Earth are more than 2° above the site's horizon
+(terrain skyline where available), shows when it opens and how long it lasts, and can jump the
+timeline there. If there is none, it says why (e.g. the Earth never rises on the far side) and
+falls back to the next window in which both are at least above the horizon.
+
 ## Accuracy check against JPL Horizons
 
 `scripts/horizons-check.mjs` queries the [JPL Horizons API](https://ssd-api.jpl.nasa.gov/doc/horizons.html)
@@ -89,7 +97,7 @@ Full table: `scripts/horizons-check-results.json`.
 | Data | Source |
 |---|---|
 | Lunar color texture | NASA SVS CGI Moon Kit (https://svs.nasa.gov/4720), `lroc_color_poles_4k.tif`, based on LRO / LROC WAC data, converted to JPEG |
-| Landing site coordinates | NASA NSSDCA, LROC (ASU) and Wikipedia — one source per site in `src/sites.js` |
+| Landing site coordinates | NASA NSSDCA (Apollo 11–17, LRO-based), LROC (ASU) and Wikipedia — one source per site in `src/sites.js` |
 | Reference ephemerides | NASA JPL Horizons (validation only) |
 | Terrain, 5 south-pole sites | NASA GSFC PGDA, High-Resolution LOLA Topography for Lunar South Pole Sites (5 m/px; Site04, Site07, Site01, Site23, Site20v2) |
 

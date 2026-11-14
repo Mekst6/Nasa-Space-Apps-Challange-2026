@@ -366,3 +366,16 @@ html, body {
 }
 .sb-legend { margin: -4px 0 4px; font-size: 12px; }
 .sb-legend .sb-terrain-badge { margin: 0 4px 0 0; display: inline-block; }
+
+.sb-next {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(60, 207, 110, 0.35);
+  border-radius: 8px;
+  background: rgba(60, 207, 110, 0.06);
+  line-height: 1.5;
+}
+.sb-next-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+.sidebar .sb-jump { margin-top: 6px; display: block; }
+.sb-fallback { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.sb-next.none { border-color: var(--border); background: rgba(255, 255, 255, 0.03); }

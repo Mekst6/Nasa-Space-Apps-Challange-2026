@@ -18,7 +18,7 @@ const gridCache = new Map();
 function gridDirections(hourIndex) {
   let dirs = gridCache.get(hourIndex);
   if (!dirs) {
-    if (gridCache.size > 6000) gridCache.clear();
+    if (gridCache.size > 20000) gridCache.clear();
     dirs = moonFixedDirections(new Date(hourIndex * HOUR_MS));
     gridCache.set(hourIndex, dirs);
   }
@@ -102,6 +102,46 @@ export function siteWindows(site, date) {
   const power = { ...bodyWindows(site, 'sun', startMs), ...extra(sky.sun) };
   const comms = { ...bodyWindows(site, 'earth', startMs), ...extra(sky.earth) };
   return { power, comms, overall: worse(power.status, comms.status), dip: sky.dip };
+}
+
+// Next time when both the Sun and the Earth are more than `minElevation` above the horizon
+// (default: the green threshold, i.e. "everything fits"). Searches up to `days` ahead.
+// Returns null if there is none, else { start, end, now }: `now` = the window is already open;
+// `end` = null if it is still open at the end of the search.
+export const GOOD_SEARCH_DAYS = 365;
+export function nextGoodWindow(site, date, { minElevation = THRESHOLDS.green, days = GOOD_SEARCH_DAYS } = {}) {
+  const margin = (ms, dirs) => {
+    const sky = siteSky(site, new Date(ms), dirs ?? moonFixedDirections(new Date(ms)));
+    return Math.min(sky.sun.apparentElevation, sky.earth.apparentElevation) - minElevation;
+  };
+  // Refine the crossing between a (condition = `wasOk`) and b to one minute.
+  const refine = (a, b, wasOk) => {
+    while (b - a > MINUTE_MS) {
+      const mid = (a + b) / 2;
+      if ((margin(mid) > 0) === wasOk) a = mid; else b = mid;
+    }
+    return new Date(b);
+  };
+
+  const startMs = date.getTime();
+  const first = Math.ceil(startMs / HOUR_MS);
+  const last = first + days * 24;
+  let prevMs = startMs;
+  let prevOk = margin(startMs) > 0;
+  let windowStart = prevOk ? date : null;
+  for (let h = first; h <= last; h++) {
+    const ms = h * HOUR_MS;
+    if (ms <= startMs) continue;
+    const ok = margin(ms, gridDirections(h)) > 0;
+    if (ok !== prevOk) {
+      const at = refine(prevMs, ms, prevOk);
+      if (!windowStart) windowStart = at;
+      else return { start: windowStart, end: at, now: windowStart === date };
+    }
+    prevMs = ms;
+    prevOk = ok;
+  }
+  return windowStart ? { start: windowStart, end: null, now: windowStart === date } : null;
 }
 
 // Cheap rating for map markers: only the current elevations.
