@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createScene, createMarker } from './scene.js';
-import { moonFixedDirections } from './ephemeris.js';
+import { moonFixedDirections, earthOrientation, earthPhase } from './ephemeris.js';
 import { siteWindows, siteStatus, nextGoodWindow, skyTrack, GOOD_SEARCH_DAYS } from './windows.js';
 import { createTimeline } from './ui/timeline.js';
 import { createSidebar } from './ui/sidebar.js';
@@ -150,6 +150,7 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
     if (which === 'near') view.flyTo(10, 15, 2.8);
     if (which === 'far') view.flyTo(-10, 180, 2.8);
     if (which === 'south') view.flyTo(-87, 0, 2.2);
+    if (which === 'earth') view.showEarthView();
   },
 });
 
@@ -266,6 +267,7 @@ function refreshDetails(force = false) {
   sidebar.showSite(state.selected, siteWindows(withHeight(state.selected), state.date), state.date, {
     window: open(windows.window), fallback: open(windows.fallback), searchDays: GOOD_SEARCH_DAYS,
     track: skyTrack(withHeight(state.selected), state.date),
+    earthPhase: state.earthPhase ?? earthPhase(state.date),
   });
 }
 
@@ -274,6 +276,9 @@ function applyTime(date) {
   const dirs = moonFixedDirections(date);
   view.setSunDirection(dirs.sun);
   view.setEarthDirection(dirs.earth);
+  view.setEarthOrientation(earthOrientation(date));
+  state.earthPhase = earthPhase(date);
+  earthLabel.el.textContent = `Earth · ${Math.round(state.earthPhase.fraction * 100)}% lit (direction, not to scale)`;
   updateMarkerColors(dirs);
   refreshDetails();
   if (typeof compare !== 'undefined') refreshCompare();

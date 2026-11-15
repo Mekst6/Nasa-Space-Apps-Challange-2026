@@ -51,6 +51,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
           <button type="button" data-view="near">Near side</button>
           <button type="button" data-view="south">South pole</button>
           <button type="button" data-view="far">Far side</button>
+          <button type="button" data-view="earth">Earth</button>
         </div>
       </section>
 
@@ -126,7 +127,21 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
       <span class="muted">(${formatUtcShort(w.next.at)})</span>`;
   }
 
-  function card(kind, title, w, date, bodyWord) {
+  // Small Earth-phase icon: a lit disk with the shadow drawn as an ellipse (terminator).
+  function phaseIcon({ fraction, waxing }) {
+    const r = 7, k = 2 * fraction - 1; // -1 new … +1 full
+    const rx = Math.abs(k) * r;
+    // Lit side: right when waxing (as seen from the Moon), left when waning.
+    const sweepOuter = waxing ? 1 : 0;
+    // Terminator: bulges into the dark half for gibbous (same turning direction as the outer arc),
+    // into the lit half for crescent (opposite direction).
+    const sweepInner = k > 0 ? sweepOuter : 1 - sweepOuter;
+    const lit = `M8,${8 - r} A${r},${r} 0 0 ${sweepOuter} 8,${8 + r} A${rx.toFixed(2)},${r} 0 0 ${sweepInner} 8,${8 - r} Z`;
+    return `<svg class="phase-icon" viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="8" cy="8" r="${r}" class="phase-dark" /><path d="${lit}" class="phase-lit" /></svg>`;
+  }
+
+  function card(kind, title, w, date, bodyWord, phase = null) {
     const pct = (100 * w.hoursAbove) / (HOURS_WINDOW_DAYS * 24);
     return `
       <div class="sb-card">
@@ -141,6 +156,8 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
         <div class="sb-metric">Next ${HOURS_WINDOW_DAYS} days: <strong>${w.hoursAbove.toFixed(0)} h</strong>
           <span class="muted">(${pct.toFixed(0)}%)</span>
           <span class="bar"><span style="width:${pct.toFixed(1)}%"></span></span></div>
+        ${phase ? `<div class="sb-metric sb-phase">${phaseIcon(phase)} Earth seen from the Moon:
+          <strong>${Math.round(phase.fraction * 100)}% lit</strong> <span class="muted">(${phase.name})</span></div>` : ''}
       </div>`;
   }
 
@@ -187,7 +204,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
     },
 
     // window: result of nextGoodWindow (green), fallback: same with 0° (both merely above the horizon).
-    showSite(site, windows, date, { window: good, fallback, searchDays, track }) {
+    showSite(site, windows, date, { window: good, fallback, searchDays, track, earthPhase }) {
       const heightText = site.horizon
         ? `height ${site.heightKm.toFixed(2)} km · <strong>terrain horizon</strong>`
         : site.heightKm === null || site.heightKm === undefined
@@ -212,7 +229,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
         </div>
         <div class="sb-sub muted">${formatLatLon(site.lat, site.lon)} · ${heightText}</div>
         ${card('power', 'Power · Sun', windows.power, date, 'sun')}
-        ${card('comms', 'Comms · Earth', windows.comms, date, 'Earth')}
+        ${card('comms', 'Comms · Earth', windows.comms, date, 'Earth', earthPhase)}
         <h3>Sky around the site</h3>
         ${horizonSvg({
             sun: { elevation: windows.power.geometric, azimuth: windows.power.azimuth },

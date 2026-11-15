@@ -74,6 +74,14 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## The Earth seen from the Moon
+
+The Earth in the 3D view uses NASA's Blue Marble texture, is rotated with the real sidereal time
+(so the continent facing the Moon is right) and is lit by the same sunlight as the Moon, so its
+phase is correct by construction. The sidebar shows the phase ("Earth seen from the Moon: 40% lit,
+waning crescent"); it is the opposite of the Moon's phase seen from Earth. The **Earth** view button
+looks at it from just above the lunar surface.
+
 ## Year overview
 
 **Year overview 📅** (in the sidebar) shows the next 12 months for one site as a calendar heatmap:
@@ -141,6 +149,7 @@ Full table: `scripts/horizons-check-results.json`.
 | Lunar color texture | NASA SVS CGI Moon Kit (https://svs.nasa.gov/4720), `lroc_color_poles_4k.tif`, based on LRO / LROC WAC data, converted to JPEG |
 | Landing site coordinates | NASA NSSDCA (Apollo 11–17, LRO-based), LROC (ASU) and Wikipedia — one source per site in `src/sites.js` |
 | Reference ephemerides | NASA JPL Horizons (validation only) |
+| Earth texture | NASA Blue Marble: Land Surface, Shallow Water, and Shaded Topography (Visible Earth, public domain), via Wikimedia Commons, resized to 2048 × 1024 |
 | Terrain, 11 south-pole sites | NASA GSFC PGDA, High-Resolution LOLA Topography for Lunar South Pole Sites (5 m/px) |
 
 ## Status

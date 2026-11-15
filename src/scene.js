@@ -28,7 +28,7 @@ export function createScene(container) {
   controls.enableDamping = true;
   controls.enablePan = false;
   controls.minDistance = 1.15;
-  controls.maxDistance = 9;
+  controls.maxDistance = 12;
   controls.rotateSpeed = 0.5;
   controls.zoomSpeed = 0.8;
 
@@ -38,10 +38,15 @@ export function createScene(container) {
   sunLight.position.set(10, 0, 0);
   scene.add(sunLight, new THREE.AmbientLight(0x8fa6c8, 0.12));
 
-  // Earth marker: right direction, not to scale (the real Earth is ~220 lunar radii away).
+  // Earth: right direction, not to scale (the real Earth is ~220 lunar radii away). It is lit by
+  // the same sunlight as the Moon, so its phase as seen from here is correct by construction.
+  // Texture: NASA Blue Marble (public domain), equirectangular and centered on Greenwich.
+  const earthTexture = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}textures/earth_bluemarble_2k.jpg`);
+  earthTexture.colorSpace = THREE.SRGBColorSpace;
+  earthTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(0.09, 32, 16),
-    new THREE.MeshBasicMaterial({ color: 0x4f8fe0 }),
+    new THREE.SphereGeometry(0.18, 64, 32),
+    new THREE.MeshStandardMaterial({ map: earthTexture, roughness: 0.9, metalness: 0 }),
   );
   const EARTH_DISTANCE = 3.4;
   const earthLine = new THREE.Line(
@@ -67,19 +72,27 @@ export function createScene(container) {
 
   function lookAtLatLon(latDeg, lonDeg, distance = 3) {
     flight = null;
+    earthLine.visible = true;
     camera.position.copy(latLonToVector3(latDeg, lonDeg, distance));
     controls.target.set(0, 0, 0);
     controls.update();
   }
 
-  // Smooth camera move to look down on a point (spherical interpolation around the moon).
+  // Smooth camera move to look down on a point (spherical interpolation around the orbit target).
+  // The target itself is moved too, so views that orbit something else (Earth view) blend back.
   let flight = null;
-  function flyTo(latDeg, lonDeg, distance = camera.position.length(), durationS = 0.9) {
+  function flyTo(latDeg, lonDeg, distance = camera.position.distanceTo(controls.target), durationS = 0.9) {
     // Stay a little off the exact poles, where the orbit controls have no defined "up".
     const lat = Math.max(-87, Math.min(87, latDeg));
+    startFlight(latLonToVector3(lat, lonDeg, distance), new THREE.Vector3(), durationS);
+    earthLine.visible = true;
+  }
+  function startFlight(toPosition, toTarget, durationS = 0.9) {
     flight = {
-      from: camera.position.clone(),
-      to: latLonToVector3(lat, lonDeg, distance),
+      from: camera.position.clone().sub(controls.target),
+      to: toPosition.clone().sub(toTarget),
+      targetFrom: controls.target.clone(),
+      targetTo: toTarget.clone(),
       t: 0,
       durationS,
     };
@@ -91,9 +104,22 @@ export function createScene(container) {
     const fromLen = flight.from.length(), toLen = flight.to.length();
     const dir = flight.from.clone().normalize().lerp(flight.to.clone().normalize(), k);
     if (dir.lengthSq() < 1e-6) dir.set(0, 1, 0); // exactly opposite: go over the pole
-    camera.position.copy(dir.normalize().multiplyScalar(fromLen + (toLen - fromLen) * k));
+    controls.target.lerpVectors(flight.targetFrom, flight.targetTo, k);
+    camera.position.copy(dir.normalize().multiplyScalar(fromLen + (toLen - fromLen) * k)).add(controls.target);
     if (flight.t >= 1) flight = null;
   }
+
+  // "Earthrise": stand just above the lunar surface below the Earth and look at it, with the
+  // Moon's horizon in the foreground. Looking along (almost) the Moon–Earth line is what makes the
+  // phase on screen match the phase seen from the Moon; the small upward offset costs ~8°.
+  function showEarthView() {
+    const e = earth.position.clone().normalize();
+    const up = new THREE.Vector3(0, 1, 0).addScaledVector(e, -e.y).normalize(); // up, perpendicular to e
+    const position = e.clone().multiplyScalar(1.12).addScaledVector(up, 0.32);
+    startFlight(position, earth.position.clone(), 1.2);
+    earthLine.visible = false; // we look almost along it, so it would only cut through the picture
+  }
+
   controls.addEventListener('start', () => { flight = null; });
 
   // Click (not drag) on the moon -> callback(lat, lon).
@@ -117,6 +143,14 @@ export function createScene(container) {
   // Directions are unit vectors in the lunar body-fixed frame (ephemeris.js).
   function setSunDirection(fixedDir) {
     sunLight.position.set(...fixedToScene(fixedDir)).multiplyScalar(10);
+  }
+
+  // Rotate the globe so its north pole and Greenwich meridian point the right way (body-fixed
+  // unit vectors from ephemeris.earthOrientation). SphereGeometry UVs: +X = 0° lon, +Y = north.
+  function setEarthOrientation({ north, greenwich }) {
+    const n = new THREE.Vector3(...fixedToScene(north));
+    const g = new THREE.Vector3(...fixedToScene(greenwich));
+    earth.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(g, n, g.clone().cross(n)));
   }
 
   function setEarthDirection(fixedDir) {
@@ -161,7 +195,7 @@ export function createScene(container) {
 
   return {
     scene, camera, renderer, controls, moon, markers, earth,
-    lookAtLatLon, flyTo, setSunDirection, setEarthDirection,
+    lookAtLatLon, flyTo, showEarthView, setSunDirection, setEarthDirection, setEarthOrientation,
     onPick: (cb) => pickCallbacks.push(cb),
     onFrame: (cb) => frameCallbacks.push(cb),
   };

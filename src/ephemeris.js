@@ -1,7 +1,7 @@
 // Sun and Earth relative to the local horizon of a point on the Moon.
 // Method: PLAN.md section 6. All positions come from astronomy-engine (J2000 equatorial, EQJ);
 // the lunar body-fixed frame comes from the IAU rotation model (RotationAxis).
-import { Body, GeoMoon, GeoVector, RotationAxis, MakeTime, KM_PER_AU } from 'astronomy-engine';
+import { Body, GeoMoon, GeoVector, RotationAxis, MakeTime, KM_PER_AU, SiderealTime } from 'astronomy-engine';
 
 export const MOON_RADIUS_KM = 1737.4;
 
@@ -115,4 +115,41 @@ export function siteSky({ lat, lon, heightKm = 0, horizon = null }, date, direct
     return { ...h, horizonElevation, apparentElevation: h.elevation - horizonElevation };
   };
   return { sun: look(directions.sunKm), earth: look(directions.earthKm), dip };
+}
+
+// ---- The Earth as seen from the Moon ----
+
+// Fraction of the Earth's disk that is sunlit, seen from the Moon (0 = "new Earth", 1 = "full Earth").
+// It is roughly the opposite of the Moon's phase seen from the Earth.
+export function earthLitFraction(directions) {
+  const { sunKm, earthKm } = directions;
+  const toSun = [sunKm[0] - earthKm[0], sunKm[1] - earthKm[1], sunKm[2] - earthKm[2]];
+  const toMoon = [-earthKm[0], -earthKm[1], -earthKm[2]];
+  const cosPhase = dot(normalize(toSun), normalize(toMoon));
+  return (1 + cosPhase) / 2;
+}
+
+export function earthPhase(date) {
+  const fraction = earthLitFraction(moonFixedDirections(date));
+  const later = earthLitFraction(moonFixedDirections(new Date(date.getTime() + 3600e3)));
+  const waxing = later > fraction;
+  let name;
+  if (fraction < 0.03) name = 'new Earth';
+  else if (fraction > 0.97) name = 'full Earth';
+  else if (Math.abs(fraction - 0.5) < 0.06) name = waxing ? 'first quarter' : 'last quarter';
+  else name = `${waxing ? 'waxing' : 'waning'} ${fraction < 0.5 ? 'crescent' : 'gibbous'}`;
+  return { fraction, waxing, name };
+}
+
+// Earth's north pole and the direction of the Greenwich meridian (0° longitude on the equator),
+// in the lunar body-fixed frame. Uses the J2000 equator and apparent sidereal time; the
+// precession since 2000 (~0.4°) is ignored, which is fine for drawing the globe.
+export function earthOrientation(date) {
+  const time = MakeTime(date);
+  const theta = SiderealTime(time) * 15 * DEG;
+  const north = [0, 0, 1];
+  const greenwich = [Math.cos(theta), Math.sin(theta), 0];
+  const { x, y, z } = moonFrame(time);
+  const toFixed = (v) => [dot(v, x), dot(v, y), dot(v, z)];
+  return { north: toFixed(north), greenwich: toFixed(greenwich) };
 }

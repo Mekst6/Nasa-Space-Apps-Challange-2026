@@ -111,3 +111,21 @@ test('terrain horizon profile replaces the dip', async () => {
   const blocked = siteSky({ ...site, horizon: { azimuthStepDeg: 1, anglesDeg: new Array(360).fill(30) } }, date);
   assert.ok(Math.abs(blocked.sun.apparentElevation - (blocked.sun.elevation - 30)) < 1e-9);
 });
+
+test('Earth phase seen from the Moon is opposite to the Moon phase', async () => {
+  const { earthPhase, earthOrientation } = await import('../src/ephemeris.js');
+  const full = SearchMoonPhase(180, MakeTime(new Date('2026-11-01T00:00:00Z')), 40);
+  const fresh = SearchMoonPhase(0, MakeTime(new Date('2026-11-01T00:00:00Z')), 40);
+  const atFull = earthPhase(full.date), atNew = earthPhase(fresh.date);
+  assert.ok(atFull.fraction < 0.03, `full Moon -> new Earth, got ${atFull.fraction}`);
+  assert.ok(atNew.fraction > 0.97, `new Moon -> full Earth, got ${atNew.fraction}`);
+  assert.equal(atFull.name, 'new Earth');
+
+  // Orientation: orthonormal, and the Earth's axis is ~23° away from the Moon's.
+  const { north, greenwich } = earthOrientation(new Date('2026-11-15T12:00:00Z'));
+  const dotp = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  assert.ok(Math.abs(dotp(north, greenwich)) < 1e-9);
+  assert.ok(Math.abs(dotp(north, north) - 1) < 1e-9 && Math.abs(dotp(greenwich, greenwich) - 1) < 1e-9);
+  const tilt = (Math.acos(north[2]) * 180) / Math.PI;
+  assert.ok(tilt > 21 && tilt < 26, `tilt ${tilt}`);
+});

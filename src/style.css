@@ -531,3 +531,8 @@ html, body {
 .yr-ramp.good { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), var(--green)); }
 .yr-ramp.sun { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), var(--sun)); }
 .yr-ramp.earth { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), var(--earth)); }
+
+.sb-phase { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.phase-icon { width: 16px; height: 16px; flex: none; }
+.phase-icon .phase-dark { fill: #1d2a44; stroke: rgba(79, 143, 224, 0.6); stroke-width: 0.8; }
+.phase-icon .phase-lit { fill: #8fc0ff; }
