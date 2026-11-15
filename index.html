@@ -11,9 +11,10 @@
     <header class="topbar">
       <h1>Lunar Landing Site Navigator</h1>
       <span class="subtitle">NASA Space Apps Challenge 2026</span>
-      <button type="button" id="ranking-open" class="topbar-btn">Best sites ★</button>
-      <button type="button" id="compare-open" class="topbar-btn">Compare sites ⇄</button>
-      <button type="button" id="share" class="topbar-btn" title="Copy a link to this site, time and view"><span class="share-label">Share </span>🔗</button>
+      <button type="button" id="tour-open" class="topbar-btn tour-btn" aria-label="Guided tour"><span class="btn-label">Tour </span>▶</button>
+      <button type="button" id="ranking-open" class="topbar-btn" aria-label="Best sites"><span class="btn-label">Best sites </span>★</button>
+      <button type="button" id="compare-open" class="topbar-btn" aria-label="Compare sites"><span class="btn-label">Compare sites </span>⇄</button>
+      <button type="button" id="share" class="topbar-btn" title="Copy a link to this site, time and view" aria-label="Share link"><span class="btn-label">Share </span>🔗</button>
     </header>
     <main id="viewport"></main>
     <aside id="sidebar" class="sidebar" aria-label="Sites and metrics"></aside>
@@ -23,6 +24,7 @@
     <section id="terrain" class="terrain" aria-label="3D terrain view"></section>
     <footer id="timeline" class="timeline"></footer>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <section id="tour" class="tour" aria-label="Guided tour" aria-live="polite"></section>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>

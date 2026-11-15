@@ -9,6 +9,7 @@ import { createTerrainView } from './ui/terrain.js';
 import { createRanking } from './ui/ranking.js';
 import { SITES, CATEGORIES } from './sites.js';
 import { buildPermalink, parsePermalink } from './permalink.js';
+import { createTour } from './ui/tour.js';
 
 const STATUS_COLORS = { green: 0x3ccf6e, yellow: 0xf2c230, red: 0xff4d4d };
 const NEUTRAL_COLOR = 0xff8a3c;
@@ -372,6 +373,116 @@ document.getElementById('share').addEventListener('click', async () => {
   }
 });
 
+// ---------- guided tour ----------
+// Fixed dates so every run of the tour shows the same, explained situation.
+const TOUR_STEPS = [
+  {
+    title: 'The Moon, lit by the real Sun',
+    html: `This is the Moon at the time shown below. The light comes from the Sun's true direction,
+      computed from NASA-grade ephemerides (checked against JPL Horizons to 0.004°).
+      Each pin is a landing site; its color says whether <strong>power</strong> (sunlight) and
+      <strong>comms</strong> (Earth in view) work right now.`,
+    run: async () => {
+      await applyLink({ siteId: 'apollo11', time: new Date('2026-11-20T00:00:00Z') });
+      view.flyTo(10, 15, 2.8);
+      timeline.setSpeed('1 day/s');
+      timeline.setPlaying(true);
+    },
+    highlight: '#timeline',
+  },
+  {
+    title: 'Power and comms at one site',
+    html: `For Apollo 11 the panel shows how high the Sun and the Earth stand above the horizon,
+      when they set or rise next, and how many hours of each the next 14 days bring.
+      Near the equator a lunar day is two weeks of light followed by two weeks of night.`,
+    run: async () => {
+      timeline.setPlaying(false);
+      await applyLink({ siteId: 'apollo11', time: new Date('2026-11-20T00:00:00Z') });
+      view.flyTo(5, 23, 2.4);
+    },
+    highlight: '.sb-card',
+  },
+  {
+    title: 'Why the south pole is hard',
+    html: `At the Shackleton rim the Sun never climbs more than ~1.6°. The chart shows the real
+      skyline from NASA's LOLA elevation data and the Sun's path for the next 30 days:
+      it circles the whole horizon, skimming the crater rims. The Earth (blue) hides
+      behind the far rim most of the time.`,
+    run: async () => {
+      await applyLink({ siteId: 'shackleton', time: new Date('2026-11-15T12:00:00Z') });
+      view.flyTo(-87, -163, 2.1);
+    },
+    highlight: '.horizon-svg',
+  },
+  {
+    title: 'Real terrain, real shadows',
+    html: `This is the Shackleton rim in 3D, from 5 m/px laser altimetry, without vertical
+      exaggeration. Watch the shadows move as time runs: a few hundred meters decide
+      between light and darkness.`,
+    run: async () => {
+      await applyLink({ siteId: 'shackleton', time: new Date('2026-11-17T00:00:00Z'), view: 'terrain' });
+      timeline.setSpeed('6 h/s');
+      timeline.setPlaying(true);
+    },
+  },
+  {
+    title: 'Compare two candidate sites',
+    html: `IM-2 (Mons Mouton) against the Malapert massif: Sun and Earth over 30 days.
+      The table marks the better value per row. Click a chart to jump to that moment.`,
+    run: async () => {
+      timeline.setPlaying(false);
+      await applyLink({ siteId: 'im2', time: new Date('2026-12-01T06:00:00Z'), view: 'compare', compareB: 'malapert-massif' });
+    },
+  },
+  {
+    title: 'Which site is best this month?',
+    html: `All 26 sites ranked for the next 30 days. “Good” means Sun and Earth are both more than 2°
+      above the horizon. South-pole sites can have no night at all, while equatorial sites
+      sit in the dark for two weeks.`,
+    run: async () => {
+      await applyLink({ siteId: 'shackleton', time: new Date('2026-11-15T12:00:00Z'), view: 'ranking' });
+    },
+  },
+  {
+    title: 'When does everything fit?',
+    html: `For any site the app searches up to a year ahead for the next window in which power and
+      comms both work, and how long it lasts. “Jump there” sets the timeline to that moment.`,
+    run: async () => {
+      await applyLink({ siteId: 'im1', time: new Date('2026-11-15T00:00:00Z') });
+      view.flyTo(-80, 1, 2.3);
+    },
+    highlight: '.sb-next',
+  },
+  {
+    title: 'Now it is your turn',
+    html: `Pick any site, enter coordinates or click on the Moon. Use the timeline to move through
+      time. <strong>Share 🔗</strong> copies a link to exactly what you see.`,
+    run: async () => {
+      await applyLink({ siteId: 'shackleton', time: new Date('2026-11-15T12:00:00Z') });
+    },
+    highlight: '#share',
+  },
+];
+
+const tour = createTour(document.getElementById('tour'), {
+  steps: TOUR_STEPS,
+  onEnd: () => timeline.setPlaying(false),
+});
+document.getElementById('tour-open').addEventListener('click', () => tour.start());
+
+// First visit (no shared link): offer the tour once.
+function offerTour() {
+  let seen = false;
+  try { seen = localStorage.getItem('tourOffered') === '1'; } catch { /* storage blocked: offer anyway */ }
+  if (seen) return;
+  try { localStorage.setItem('tourOffered', '1'); } catch { /* ignore */ }
+  showToast('New here? <button type="button" class="toast-btn">Take the 1-minute tour ▶</button>', 9000);
+  toast.querySelector('.toast-btn')?.addEventListener('click', () => {
+    toast.hidden = true;
+    tour.start();
+  });
+}
+
 // Start: restore a shared link if there is one, otherwise look at the near side and Apollo 11.
 const initialLink = parsePermalink(location.hash);
 view.lookAtLatLon(10, 15, 2.6);
@@ -381,4 +492,5 @@ applyLink(Object.keys(initialLink).length ? initialLink : { siteId: SITES[0].id 
     if (!Object.keys(initialLink).length) view.lookAtLatLon(10, 15, 2.6);
     linkReady = true;
     syncLink(true);
+    if (!Object.keys(initialLink).length) offerTour();
   });

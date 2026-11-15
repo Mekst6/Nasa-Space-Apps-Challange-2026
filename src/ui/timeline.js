@@ -103,6 +103,12 @@ export function createTimeline(container, { start = new Date(), onChange }) {
       setTime(time + dtSeconds * SPEEDS[Number(speedSel.value)].msPerSecond);
     },
     get date() { return new Date(time); },
+    // Remote control for the guided tour.
+    setPlaying,
+    setSpeed(label) {
+      const i = SPEEDS.findIndex((sp) => sp.label === label);
+      if (i >= 0) speedSel.value = String(i);
+    },
     // Jump to a time from outside (e.g. a click in the comparison chart).
     setDate(date) {
       time = date.getTime();

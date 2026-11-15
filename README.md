@@ -74,6 +74,13 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## Guided tour
+
+**Tour ▶** walks through the app in 8 steps (real sunlight, power and comms at a site, why the
+south pole is hard, real terrain with moving shadows, comparison, ranking, "when does everything
+fit?", sharing). Each step sets up the app at a fixed date so the explanation always matches what
+is shown. First-time visitors get a one-time hint to start it.
+
 ## Shareable links
 
 The URL always reflects what you see: site (or custom point), time and open view, e.g.
