@@ -10,6 +10,7 @@ import { createRanking } from './ui/ranking.js';
 import { SITES, CATEGORIES } from './sites.js';
 import { buildPermalink, parsePermalink } from './permalink.js';
 import { createTour } from './ui/tour.js';
+import { createYearView } from './ui/year.js';
 
 const STATUS_COLORS = { green: 0x3ccf6e, yellow: 0xf2c230, red: 0xff4d4d };
 const NEUTRAL_COLOR = 0xff8a3c;
@@ -103,6 +104,7 @@ function select(site, { fly = true } = {}) {
   }
   if (fly) view.flyTo(site.lat, site.lon, site.southPole ? 2.2 : 2.6);
   refreshDetails(true);
+  if (typeof yearView !== 'undefined' && yearView.isOpen && yearView.site !== site) yearView.open(site, state.date);
 }
 
 function setCustom({ lat, lon, heightKm }) {
@@ -141,6 +143,7 @@ const sidebar = createSidebar(document.getElementById('sidebar'), {
     }
   },
   onCompare: () => openCompare(state.selected.id),
+  onYear: () => openYear(state.selected),
   onJump: (date) => timeline.setDate(date),
   onTerrain: () => openTerrain(state.selected),
   onView: (which) => {
@@ -159,6 +162,7 @@ function openTerrain(site) {
   if (!meta) return;
   compare.close();
   ranking.close();
+  yearView.close();
   terrainView.setDate(state.date);
   terrainView.open(site, meta);
 }
@@ -173,6 +177,7 @@ const allSites = () => [...SITES, ...(customEntry ? [customEntry.site] : [])];
 
 // Default partner: another south-pole site for south-pole sites, otherwise the Shackleton rim.
 function openCompare(siteId, partnerId = null) {
+  yearView.close();
   const site = allSites().find((s) => s.id === siteId);
   const partner = allSites().find((s) => s.id === partnerId && s.id !== siteId)
     ?? SITES.find((s) => s.id !== siteId && s.southPole && (site?.southPole ? s.id !== 'shackleton' || siteId !== 'im2' : true))
@@ -183,8 +188,20 @@ function openCompare(siteId, partnerId = null) {
 document.getElementById('compare-open').addEventListener('click', () => {
   terrainView.close();
   ranking.close();
+  yearView.close();
   openCompare(state.selected.id);
 });
+
+// ---------- year overview ----------
+const yearView = createYearView(document.getElementById('year'), {
+  onPickDay: (date) => timeline.setDate(new Date(date.getTime() + 12 * 3600e3)), // noon of that day
+});
+function openYear(site) {
+  terrainView.close();
+  compare.close();
+  ranking.close();
+  yearView.open(site, state.date);
+}
 
 // ---------- ranking ----------
 const ranking = createRanking(document.getElementById('ranking'), {
@@ -197,6 +214,7 @@ const ranking = createRanking(document.getElementById('ranking'), {
 document.getElementById('ranking-open').addEventListener('click', () => {
   terrainView.close();
   compare.close();
+  yearView.close();
   ranking.setDate(state.date);
   ranking.open();
 });
@@ -261,6 +279,7 @@ function applyTime(date) {
   if (typeof compare !== 'undefined') refreshCompare();
   if (typeof terrainView !== 'undefined') terrainView.setDate(date);
   if (typeof ranking !== 'undefined') ranking.setDate(date);
+  if (typeof yearView !== 'undefined') yearView.setDate(date);
 }
 
 const timeline = createTimeline(document.getElementById('timeline'), { onChange: applyTime });
@@ -286,6 +305,7 @@ for (const site of SITES.filter((s) => s.terrain)) {
       refreshDetails(true);
       refreshCompare(true);
       ranking.refresh();
+      if (yearView.site === site) yearView.refresh();
       return meta;
     })
     .catch((err) => console.warn(`Terrain for ${site.id} not loaded:`, err));
@@ -300,6 +320,7 @@ function currentView() {
   if (compare.isOpen) return 'compare';
   if (terrainView.isOpen) return 'terrain';
   if (ranking.isOpen) return 'ranking';
+  if (yearView.isOpen) return 'year';
   return null;
 }
 
@@ -335,7 +356,12 @@ async function applyLink(link) {
   terrainView.close();
   compare.close();
   ranking.close();
+  yearView.close();
   if (link.view === 'compare') openCompare(site.id, link.compareB);
+  if (link.view === 'year') {
+    if (terrainReady[site.id]) await terrainReady[site.id];
+    openYear(site);
+  }
   if (link.view === 'ranking') {
     ranking.setDate(state.date);
     ranking.open();

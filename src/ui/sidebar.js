@@ -9,7 +9,7 @@ const STATUS_TEXT = {
   overall: { green: 'Good', yellow: 'Marginal', red: 'Not possible now' },
 };
 
-export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare, onTerrain, onJump }) {
+export function createSidebar(container, { sites, categories, onSelect, onCustom, onToggle, onView, onCompare, onTerrain, onJump, onYear }) {
   const grouped = categories.map((cat) => ({ cat, items: sites.filter((s) => s.category === cat) }));
   container.innerHTML = `
     <button type="button" class="sb-collapse" aria-expanded="true" aria-controls="sb-body" title="Hide panel">‹</button>
@@ -95,6 +95,7 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
 
   details.addEventListener('click', (e) => {
     if (e.target.closest('.sb-compare')) onCompare();
+    if (e.target.closest('.sb-year')) onYear();
     if (e.target.closest('.sb-terrain')) onTerrain();
     const jump = e.target.closest('[data-jump]');
     if (jump) onJump(new Date(Number(jump.dataset.jump)));
@@ -205,7 +206,10 @@ export function createSidebar(container, { sites, categories, onSelect, onCustom
         </div>
         ${nextWindowHtml(good, fallback, windows, date, searchDays)}
         ${site.horizon ? '<button type="button" class="sb-terrain">Open 3D terrain view</button>' : ''}
-        <button type="button" class="sb-compare">Compare with another site ⇄</button>
+        <div class="sb-actions">
+          <button type="button" class="sb-compare">Compare ⇄</button>
+          <button type="button" class="sb-year">Year overview 📅</button>
+        </div>
         <div class="sb-sub muted">${formatLatLon(site.lat, site.lon)} · ${heightText}</div>
         ${card('power', 'Power · Sun', windows.power, date, 'sun')}
         ${card('comms', 'Comms · Earth', windows.comms, date, 'Earth')}

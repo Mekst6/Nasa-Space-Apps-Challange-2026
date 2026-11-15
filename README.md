@@ -74,6 +74,14 @@ node scripts/build-terrain.mjs /tmp/Site04.tif shackleton -89.684 -163.261 512
 node scripts/build-terrain.mjs /tmp/Site07.tif peak-near-shackleton auto 512
 ```
 
+## Year overview
+
+**Year overview 📅** (in the sidebar) shows the next 12 months for one site as a calendar heatmap:
+hours per day with Sun and Earth both above 2° ("Good"), sunlight, or Earth in view, plus monthly
+and yearly shares and the longest darkness. Clicking a day jumps there. Example: the Shackleton rim
+has 73% sunlight over the year but only 9% "good" time, because the Earth hides behind the far
+crater rim most of the time; there is no good window at all from April to June 2027.
+
 ## Guided tour
 
 **Tour ▶** walks through the app in 8 steps (real sunlight, power and comms at a site, why the
@@ -85,7 +93,7 @@ is shown. First-time visitors get a one-time hint to start it.
 
 The URL always reflects what you see: site (or custom point), time and open view, e.g.
 `#site=shackleton&t=2026-11-23T20:00Z&view=terrain` or
-`#site=im2&t=2026-12-01T06:00Z&view=compare&b=malapert-massif`.
+`#site=im2&t=2026-12-01T06:00Z&view=compare&b=malapert-massif` (views: `compare`, `terrain`, `ranking`, `year`).
 Opening such a link restores that state; the **Share 🔗** button copies it.
 
 ## Sky around the site

@@ -1,7 +1,7 @@
 // Shareable links: the app state lives in the URL hash, e.g.
 //   #site=shackleton&t=2026-11-23T20:00Z&view=compare&b=im1
 //   #lat=-85.2&lon=30.5&h=1.2&site=custom&t=2026-11-23T20:00Z
-const VIEWS = ['compare', 'terrain', 'ranking'];
+const VIEWS = ['compare', 'terrain', 'ranking', 'year'];
 
 const pad = (n) => String(n).padStart(2, '0');
 // Minute precision is plenty and keeps links short.
@@ -10,7 +10,7 @@ export function formatLinkTime(date) {
     + `T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}Z`;
 }
 
-// state: { siteId, time: Date, view?: 'compare'|'terrain'|'ranking', compareB?, custom?: { lat, lon, heightKm } }
+// state: { siteId, time: Date, view?: 'compare'|'terrain'|'ranking'|'year', compareB?, custom?: { lat, lon, heightKm } }
 export function buildPermalink({ siteId, time, view = null, compareB = null, custom = null }) {
   const params = new URLSearchParams();
   if (custom) {

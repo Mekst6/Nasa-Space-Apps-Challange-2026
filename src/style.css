@@ -494,3 +494,40 @@ html, body {
 @media (max-width: 700px) {
   .tour { left: 8px; right: 8px; width: auto; bottom: 150px; }
 }
+
+.sb-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.sb-actions button { margin-top: 0 !important; }
+.year[hidden] { display: none; }
+.yr-modes { display: flex; gap: 0; margin-left: 8px; }
+.yr-modes button { border-radius: 0 !important; margin-left: -1px; }
+.yr-modes button:first-child { border-radius: 6px 0 0 6px !important; }
+.yr-modes button:last-child { border-radius: 0 6px 6px 0 !important; }
+.yr-modes button.active { background: rgba(255, 255, 255, 0.18) !important; color: var(--fg); }
+.yr-totals { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 8px; }
+.yr-scroll { overflow-x: auto; }
+.yr-grid { display: grid; gap: 3px; min-width: 640px; }
+.yr-row { display: grid; grid-template-columns: 52px repeat(31, minmax(12px, 1fr)) 44px; gap: 3px; align-items: center; }
+.yr-head span { font-size: 10px; color: var(--muted); text-align: center; }
+.yr-mlabel { font-size: 12px; color: var(--muted); }
+.yr-mpct { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.yr-head .yr-mpct { text-align: right; }
+.yr-cell {
+  all: unset;
+  box-sizing: border-box;
+  height: 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+}
+.yr-cell.empty { background: none; cursor: default; }
+.yr-cell.good { background: color-mix(in srgb, var(--green) calc(var(--v) * 100%), rgba(255, 255, 255, 0.05)); }
+.yr-cell.sun { background: color-mix(in srgb, var(--sun) calc(var(--v) * 100%), rgba(255, 255, 255, 0.05)); }
+.yr-cell.earth { background: color-mix(in srgb, var(--earth) calc(var(--v) * 100%), rgba(255, 255, 255, 0.05)); }
+.yr-cell:hover, .yr-cell:focus-visible { outline: 1px solid var(--fg); }
+.yr-cell.today { outline: 2px solid var(--accent); outline-offset: 1px; }
+.yr-foot { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 10px; font-size: 12px; }
+.yr-legend { display: inline-flex; align-items: center; gap: 6px; }
+.yr-ramp { display: inline-block; width: 120px; height: 10px; border-radius: 3px; }
+.yr-ramp.good { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), var(--green)); }
+.yr-ramp.sun { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), var(--sun)); }
+.yr-ramp.earth { background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), var(--earth)); }

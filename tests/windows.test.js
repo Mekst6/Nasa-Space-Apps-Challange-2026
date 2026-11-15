@@ -91,3 +91,20 @@ test('sky track: 30 days in 2 h steps, matches siteSky at its sample times', asy
   const azimuths = new Set(track.sun.map((p) => Math.floor(p.azimuth / 45)));
   assert.equal(azimuths.size, 8);
 });
+
+test('year overview: one entry per day, totals add up, equator ~50% sun', async () => {
+  const { yearOverview } = await import('../src/windows.js');
+  const y = yearOverview({ lat: 0.674, lon: 23.473, heightKm: 0 }, new Date('2026-11-15T12:00:00Z'));
+  assert.equal(new Date(y.start).toISOString(), '2026-11-01T00:00:00.000Z');
+  assert.equal(new Date(y.end).toISOString(), '2027-11-01T00:00:00.000Z');
+  assert.equal(y.days.length, 365);
+  assert.ok(y.days.every((d) => d.hours === 24 && d.good <= Math.min(d.sun, d.earth)));
+  assert.equal(y.totals.sun, y.days.reduce((a, d) => a + d.sun, 0));
+  const sunShare = y.totals.sun / y.totals.hours;
+  assert.ok(sunShare > 0.47 && sunShare < 0.53, `${sunShare}`);
+  assert.equal(y.totals.earth, y.totals.hours); // near side: Earth always up
+
+  const far = yearOverview({ lat: -45.4561, lon: 177.5885, heightKm: 0 }, new Date('2026-11-15T12:00:00Z'));
+  assert.equal(far.totals.earth, 0);
+  assert.equal(far.totals.good, 0);
+});

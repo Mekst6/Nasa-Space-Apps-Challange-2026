@@ -104,6 +104,33 @@ export function siteWindows(site, date) {
   return { power, comms, overall: worse(power.status, comms.status), dip: sky.dip };
 }
 
+// Day-by-day summary for the year overview: hours per UTC day with the Sun above the horizon,
+// the Earth above the horizon, and both above the green threshold ("good"), from hourly samples.
+// Starts at 00:00 UTC of the first day of `date`'s month.
+export function yearOverview(site, date, { months = 12 } = {}) {
+  const start = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
+  const end = Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, 1);
+  const hours = Math.round((end - start) / HOUR_MS);
+  const series = elevationSeries(site, start, hours);
+  const days = [];
+  for (let i = 0; i < hours; i++) {
+    const d = Math.floor(i / 24);
+    if (!days[d]) days[d] = { t: start + d * 24 * HOUR_MS, sun: 0, earth: 0, good: 0, hours: 0 };
+    const day = days[d];
+    const sun = series.sun[i], earth = series.earth[i];
+    day.hours += 1;
+    if (sun > 0) day.sun += 1;
+    if (earth > 0) day.earth += 1;
+    if (sun > THRESHOLDS.green && earth > THRESHOLDS.green) day.good += 1;
+  }
+  const sum = (k) => days.reduce((a, d) => a + d[k], 0);
+  return {
+    start, end, days,
+    totals: { hours, sun: sum('sun'), earth: sum('earth'), good: sum('good') },
+    longestDark: seriesStats(series.sun),
+  };
+}
+
 // Path of the Sun and the Earth across the site's sky (geometric elevation and azimuth),
 // sampled every `stepHours` on the shared hourly grid, for the horizon chart trails.
 export function skyTrack(site, date, { days = LOOKAHEAD_DAYS, stepHours = 2 } = {}) {
