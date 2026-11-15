@@ -110,8 +110,9 @@ export function createCompare(container, { getSites, onPickTime }) {
     const B = elevationSeries(withH(siteB), start);
     state.data = { A, B, siteA, siteB };
 
-    $('.cmp-window').textContent = `${LOOKAHEAD_DAYS} days from ${formatUtcShort(new Date(start))} · smooth horizon`
-      + (siteA.heightKm || siteB.heightKm ? ' + horizon dip where a height is set' : '');
+    const skyline = (s) => (s.horizon ? 'terrain skyline' : s.heightKm ? 'smooth horizon + dip' : 'smooth horizon');
+    $('.cmp-window').textContent = `${LOOKAHEAD_DAYS} days from ${formatUtcShort(new Date(start))}`
+      + ` · ${siteA.mission}: ${skyline(siteA)} · ${siteB.mission}: ${skyline(siteB)}`;
     for (const kind of ['sun', 'earth']) {
       $(`.cmp-svg-wrap[data-kind="${kind}"]`).innerHTML = chartSvg(kind, A.times, A[kind], B[kind], focusBox.checked);
     }
@@ -137,14 +138,18 @@ export function createCompare(container, { getSites, onPickTime }) {
     const total = sa.hoursTotal;
     const pct = (h) => `${Math.round((100 * h) / total)}%`;
     const run = (s) => (s.longestBelow === 0 ? 'none' : `${s.runOpen ? '≥ ' : ''}${fmtHours(s.longestBelow)}`);
-    const both = [bothAboveHours(A.sun, A.earth), bothAboveHours(B.sun, B.earth)];
+    // Same rule as the traffic lights and the ranking: both more than 2° above the horizon.
+    const both = [
+      bothAboveHours(A.sun, A.earth, THRESHOLDS.green),
+      bothAboveHours(B.sun, B.earth, THRESHOLDS.green),
+    ];
     // [label, valueA, valueB, textA, textB, higherIsBetter]
     const rows = [
       ['Sunlight', sa.hoursAbove, sb.hoursAbove, `${fmtHours(sa.hoursAbove)} (${pct(sa.hoursAbove)})`, `${fmtHours(sb.hoursAbove)} (${pct(sb.hoursAbove)})`, true],
       ['Longest darkness', sa.longestBelow, sb.longestBelow, run(sa), run(sb), false],
       ['Earth in view', ea.hoursAbove, eb.hoursAbove, `${fmtHours(ea.hoursAbove)} (${pct(ea.hoursAbove)})`, `${fmtHours(eb.hoursAbove)} (${pct(eb.hoursAbove)})`, true],
       ['Longest Earth blackout', ea.longestBelow, eb.longestBelow, run(ea), run(eb), false],
-      ['Sun and Earth together', both[0], both[1], `${fmtHours(both[0])} (${pct(both[0])})`, `${fmtHours(both[1])} (${pct(both[1])})`, true],
+      [`Good (both above ${THRESHOLDS.green}°)`, both[0], both[1], `${fmtHours(both[0])} (${pct(both[0])})`, `${fmtHours(both[1])} (${pct(both[1])})`, true],
     ];
     const cell = (v, other, text, higher) => {
       const better = Math.abs(v - other) > 0.5 && (higher ? v > other : v < other);
@@ -218,6 +223,10 @@ export function createCompare(container, { getSites, onPickTime }) {
         state.windowStart = null;
         render();
       } else moveNowLine();
+    },
+    // Terrain profiles arrive asynchronously; recompute so 3D sites use their skyline.
+    refresh() {
+      if (!container.hidden) render();
     },
     refreshSites() {
       if (!container.hidden) fillSelects();

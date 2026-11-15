@@ -308,7 +308,7 @@ for (const site of SITES.filter((s) => s.terrain)) {
       windowCache = null;
       updateMarkerColors();
       refreshDetails(true);
-      refreshCompare(true);
+      compare.refresh();
       ranking.refresh();
       if (yearView.site === site) yearView.refresh();
       return meta;
